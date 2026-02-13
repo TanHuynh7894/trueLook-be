@@ -10,6 +10,7 @@ import { BrandsModule } from './modules/brands/brands.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { ShippingProvidersModule } from './modules/shipping_providers/shipping_providers.module';
+import { ShippingServicesModule } from './modules/shipping_services/shipping_services.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { ShippingProvidersModule } from './modules/shipping_providers/shipping_p
     BrandsModule,
     CategoriesModule,
     PromotionsModule,
-    ShippingProvidersModule
+    ShippingProvidersModule,
+    ShippingServicesModule
   ],
   controllers: [AppController],
   providers: [AppService],
