@@ -7,27 +7,27 @@ import { UpdatePromotionDto } from './dto/update-promotion.dto';
 export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createPromotionDto: CreatePromotionDto) {
     return this.promotionsService.create(createPromotionDto);
   }
 
-  @Get()
+  @Get('findAll')
   findAll() {
     return this.promotionsService.findAll();
   }
 
-  @Get(':id')
+  @Get('findOne/:id')
   findOne(@Param('id') id: string) {
     return this.promotionsService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   update(@Param('id') id: string, @Body() updatePromotionDto: UpdatePromotionDto) {
     return this.promotionsService.update(id, updatePromotionDto);
   }
 
-  @Delete(':id')
+  @Delete('remove/:id')
   remove(@Param('id') id: string) {
     return this.promotionsService.remove(id);
   }

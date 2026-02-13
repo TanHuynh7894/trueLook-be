@@ -7,27 +7,27 @@ import { UpdateShippingServiceDto } from './dto/update-shipping_service.dto';
 export class ShippingServicesController {
   constructor(private readonly shippingServicesService: ShippingServicesService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createShippingServiceDto: CreateShippingServiceDto) {
     return this.shippingServicesService.create(createShippingServiceDto);
   }
 
-  @Get()
+  @Get('findAll')
   findAll() {
     return this.shippingServicesService.findAll();
   }
 
-  @Get(':id')
+  @Get('findOne/:id')
   findOne(@Param('id') id: string) {
     return this.shippingServicesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateShippingServiceDto: UpdateShippingServiceDto) {
     return this.shippingServicesService.update(id, updateShippingServiceDto);
   }
 
-  @Delete(':id')
+  @Delete('remove/:id')
   remove(@Param('id') id: string) {
     return this.shippingServicesService.remove(id);
   }
