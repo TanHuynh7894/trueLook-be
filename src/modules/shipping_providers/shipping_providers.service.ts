@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateShippingProviderDto } from './dto/create-shipping_provider.dto';
 import { UpdateShippingProviderDto } from './dto/update-shipping_provider.dto';
+import { Repository } from 'typeorm';
+import { ShippingProvider } from './entities/shipping_provider.entity';
 
 @Injectable()
 export class ShippingProvidersService {
-  create(createShippingProviderDto: CreateShippingProviderDto) {
-    return 'This action adds a new shippingProvider';
+  constructor(
+    @InjectRepository(ShippingProvider)
+    private shippingProvidersRepository: Repository<ShippingProvider>,
+  ) {}
+
+  async create(createShippingProviderDto: CreateShippingProviderDto) {
+    const newShippingProvider = this.shippingProvidersRepository.create(createShippingProviderDto);
+    return await this.shippingProvidersRepository.save(newShippingProvider);
   }
 
   findAll() {
-    return `This action returns all shippingProviders`;
+    return this.shippingProvidersRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} shippingProvider`;
+  async findOne(id: string) {
+    const shippingProvider = await this.shippingProvidersRepository.findOneBy({ id });
+    if (!shippingProvider) {
+      throw new NotFoundException(`Shipping provider with id ${id} not found`);
+    }
+    return shippingProvider;
   }
 
-  update(id: number, updateShippingProviderDto: UpdateShippingProviderDto) {
-    return `This action updates a #${id} shippingProvider`;
+  async update(id: string, updateShippingProviderDto: UpdateShippingProviderDto) {
+    await this.shippingProvidersRepository.update(id, updateShippingProviderDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} shippingProvider`;
+  async remove(id: string) {
+    const result = await this.shippingProvidersRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Shipping provider with id ${id} not found for delete`);
+    }
+    return {
+      message: `Deleted shipping provider with id: ${id}`,
+      statusCode: 200,
+    };
   }
 }
