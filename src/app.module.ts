@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { RolesModule } from './modules/roles/roles.module';
+import { BrandsModule } from './modules/brands/brands.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { ShippingProvidersModule } from './modules/shipping_providers/shipping_providers.module';
 
 @Module({
   imports: [
@@ -27,7 +31,11 @@ import { RolesModule } from './modules/roles/roles.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    RolesModule
+    RolesModule,
+    BrandsModule,
+    CategoriesModule,
+    PromotionsModule,
+    ShippingProvidersModule
   ],
   controllers: [AppController],
   providers: [AppService],

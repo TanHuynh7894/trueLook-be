@@ -1,17 +1,18 @@
 import { BeforeInsert, Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity('roles')
-export class Role {
+@Entity('brands')
+export class Brand {
   @PrimaryColumn({ type: 'varchar', length: 15 })
   id: string;
 
   @Column()
   name: string;
 
+  @Column()
+  status: string;
+
   @BeforeInsert()
   generateId() {
     this.id = Date.now().toString();
   }
-
-  
 }
