@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
       }),
       inject: [ConfigService],
     }),
-    UsersModule
+    UsersModule,
+    RolesModule
   ],
   controllers: [AppController],
   providers: [AppService],
