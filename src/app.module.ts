@@ -12,6 +12,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { ShippingProvidersModule } from './modules/shipping_providers/shipping_providers.module';
 import { ShippingServicesModule } from './modules/shipping_services/shipping_services.module';
 import { UserRolesModule } from './modules/user_roles/user_roles.module';
+import { LogsModule } from './modules/logs/logs.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { UserRolesModule } from './modules/user_roles/user_roles.module';
     PromotionsModule,
     ShippingProvidersModule,
     ShippingServicesModule,
-    UserRolesModule
+    UserRolesModule,
+    LogsModule
   ],
   controllers: [AppController],
   providers: [AppService],
