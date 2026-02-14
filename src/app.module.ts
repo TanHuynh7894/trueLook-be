@@ -15,6 +15,7 @@ import { UserRolesModule } from './modules/user_roles/user_roles.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { CartsModule } from './modules/carts/carts.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { CartsModule } from './modules/carts/carts.module';
     UserRolesModule,
     LogsModule,
     AddressesModule,
-    CartsModule
+    CartsModule,
+    ProductsModule
   ],
   controllers: [AppController],
   providers: [AppService],
