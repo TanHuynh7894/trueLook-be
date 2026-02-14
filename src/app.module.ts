@@ -11,6 +11,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { ShippingProvidersModule } from './modules/shipping_providers/shipping_providers.module';
 import { ShippingServicesModule } from './modules/shipping_services/shipping_services.module';
+import { UserRolesModule } from './modules/user_roles/user_roles.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { ShippingServicesModule } from './modules/shipping_services/shipping_ser
     CategoriesModule,
     PromotionsModule,
     ShippingProvidersModule,
-    ShippingServicesModule
+    ShippingServicesModule,
+    UserRolesModule
   ],
   controllers: [AppController],
   providers: [AppService],
