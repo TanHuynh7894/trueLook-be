@@ -13,6 +13,7 @@ import { ShippingProvidersModule } from './modules/shipping_providers/shipping_p
 import { ShippingServicesModule } from './modules/shipping_services/shipping_services.module';
 import { UserRolesModule } from './modules/user_roles/user_roles.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { AddressesModule } from './modules/addresses/addresses.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { LogsModule } from './modules/logs/logs.module';
     ShippingProvidersModule,
     ShippingServicesModule,
     UserRolesModule,
-    LogsModule
+    LogsModule,
+    AddressesModule
   ],
   controllers: [AppController],
   providers: [AppService],
