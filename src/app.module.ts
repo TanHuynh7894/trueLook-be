@@ -16,6 +16,7 @@ import { LogsModule } from './modules/logs/logs.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { ProductsModule } from './modules/products/products.module';
+import { ProductVariantsModule } from './modules/product_variants/product_variants.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { ProductsModule } from './modules/products/products.module';
     LogsModule,
     AddressesModule,
     CartsModule,
-    ProductsModule
+    ProductsModule,
+    ProductVariantsModule
   ],
   controllers: [AppController],
   providers: [AppService],
