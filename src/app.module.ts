@@ -17,6 +17,7 @@ import { AddressesModule } from './modules/addresses/addresses.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ProductVariantsModule } from './modules/product_variants/product_variants.module';
+import { ImagesModule } from './modules/images/images.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { ProductVariantsModule } from './modules/product_variants/product_varian
     AddressesModule,
     CartsModule,
     ProductsModule,
-    ProductVariantsModule
+    ProductVariantsModule,
+    ImagesModule
   ],
   controllers: [AppController],
   providers: [AppService],
