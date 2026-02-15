@@ -23,6 +23,9 @@ import { ProductPromotionsModule } from './modules/product_promotions/product_pr
 import { CartItemsModule } from './modules/cart_items/cart_items.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { OrderDetailsModule } from './modules/order_details/order_details.module';
+import { ShippingModule } from './modules/shipping/shipping.module';
+import { TransitionsModule } from './modules/transitions/transitions.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -61,7 +64,10 @@ import { OrderDetailsModule } from './modules/order_details/order_details.module
     ProductPromotionsModule,
     CartItemsModule,
     OrdersModule,
-    OrderDetailsModule
+    OrderDetailsModule,
+    ShippingModule,
+    TransitionsModule,
+    PaymentsModule
   ],
   controllers: [AppController],
   providers: [AppService],
