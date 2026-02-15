@@ -21,6 +21,7 @@ import { ImagesModule } from './modules/images/images.module';
 import { ProductCategoriesModule } from './modules/product_categories/product_categories.module';
 import { ProductPromotionsModule } from './modules/product_promotions/product_promotions.module';
 import { CartItemsModule } from './modules/cart_items/cart_items.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -57,7 +58,8 @@ import { CartItemsModule } from './modules/cart_items/cart_items.module';
     ImagesModule,
     ProductCategoriesModule,
     ProductPromotionsModule,
-    CartItemsModule
+    CartItemsModule,
+    OrdersModule
   ],
   controllers: [AppController],
   providers: [AppService],
