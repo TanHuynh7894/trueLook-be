@@ -27,6 +27,7 @@ import { ShippingModule } from './modules/shipping/shipping.module';
 import { TransitionsModule } from './modules/transitions/transitions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
+import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module';
 
 @Module({
   imports: [
@@ -69,7 +70,8 @@ import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
     ShippingModule,
     TransitionsModule,
     PaymentsModule,
-    FrameSpecsModule
+    FrameSpecsModule,
+    RxLensSpecsModule
   ],
   controllers: [AppController],
   providers: [AppService],
