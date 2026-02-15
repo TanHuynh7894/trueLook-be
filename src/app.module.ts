@@ -19,6 +19,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { ProductVariantsModule } from './modules/product_variants/product_variants.module';
 import { ImagesModule } from './modules/images/images.module';
 import { ProductCategoriesModule } from './modules/product_categories/product_categories.module';
+import { ProductPromotionsModule } from './modules/product_promotions/product_promotions.module';
 
 @Module({
   imports: [
@@ -53,7 +54,8 @@ import { ProductCategoriesModule } from './modules/product_categories/product_ca
     ProductsModule,
     ProductVariantsModule,
     ImagesModule,
-    ProductCategoriesModule
+    ProductCategoriesModule,
+    ProductPromotionsModule
   ],
   controllers: [AppController],
   providers: [AppService],
