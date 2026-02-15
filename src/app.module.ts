@@ -26,6 +26,7 @@ import { OrderDetailsModule } from './modules/order_details/order_details.module
 import { ShippingModule } from './modules/shipping/shipping.module';
 import { TransitionsModule } from './modules/transitions/transitions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
 
 @Module({
   imports: [
@@ -67,7 +68,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
     OrderDetailsModule,
     ShippingModule,
     TransitionsModule,
-    PaymentsModule
+    PaymentsModule,
+    FrameSpecsModule
   ],
   controllers: [AppController],
   providers: [AppService],
