@@ -20,6 +20,7 @@ import { ProductVariantsModule } from './modules/product_variants/product_varian
 import { ImagesModule } from './modules/images/images.module';
 import { ProductCategoriesModule } from './modules/product_categories/product_categories.module';
 import { ProductPromotionsModule } from './modules/product_promotions/product_promotions.module';
+import { CartItemsModule } from './modules/cart_items/cart_items.module';
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import { ProductPromotionsModule } from './modules/product_promotions/product_pr
     ProductVariantsModule,
     ImagesModule,
     ProductCategoriesModule,
-    ProductPromotionsModule
+    ProductPromotionsModule,
+    CartItemsModule
   ],
   controllers: [AppController],
   providers: [AppService],
