@@ -22,6 +22,7 @@ import { ProductCategoriesModule } from './modules/product_categories/product_ca
 import { ProductPromotionsModule } from './modules/product_promotions/product_promotions.module';
 import { CartItemsModule } from './modules/cart_items/cart_items.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { OrderDetailsModule } from './modules/order_details/order_details.module';
 
 @Module({
   imports: [
@@ -59,7 +60,8 @@ import { OrdersModule } from './modules/orders/orders.module';
     ProductCategoriesModule,
     ProductPromotionsModule,
     CartItemsModule,
-    OrdersModule
+    OrdersModule,
+    OrderDetailsModule
   ],
   controllers: [AppController],
   providers: [AppService],
