@@ -28,6 +28,7 @@ import { TransitionsModule } from './modules/transitions/transitions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
 import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module';
+import { ContactLensSpecsModule } from './modules/contact-lens-specs/contact-lens-specs.module';
 
 @Module({
   imports: [
@@ -71,7 +72,8 @@ import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module'
     TransitionsModule,
     PaymentsModule,
     FrameSpecsModule,
-    RxLensSpecsModule
+    RxLensSpecsModule,
+    ContactLensSpecsModule
   ],
   controllers: [AppController],
   providers: [AppService],
