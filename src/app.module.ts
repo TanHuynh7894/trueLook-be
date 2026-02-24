@@ -12,7 +12,6 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { ShippingProvidersModule } from './modules/shipping_providers/shipping_providers.module';
 import { ShippingServicesModule } from './modules/shipping_services/shipping_services.module';
 import { UserRolesModule } from './modules/user_roles/user_roles.module';
-import { LogsModule } from './modules/logs/logs.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -29,7 +28,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
 import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module';
 import { ContactLensSpecsModule } from './modules/contact-lens-specs/contact-lens-specs.module';
-import { FearturesModule } from './modules/feartures/feartures.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -50,6 +50,24 @@ import { FearturesModule } from './modules/feartures/feartures.module';
       }),
       inject: [ConfigService],
     }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASS'),
+          },
+        },
+        defaults: {
+          from: '"True Look Support" <no-reply@truelook.com>',
+        },
+      }),
+      inject: [ConfigService],
+    }),
     UsersModule,
     RolesModule,
     BrandsModule,
@@ -58,7 +76,6 @@ import { FearturesModule } from './modules/feartures/feartures.module';
     ShippingProvidersModule,
     ShippingServicesModule,
     UserRolesModule,
-    LogsModule,
     AddressesModule,
     CartsModule,
     ProductsModule,
@@ -75,7 +92,7 @@ import { FearturesModule } from './modules/feartures/feartures.module';
     FrameSpecsModule,
     RxLensSpecsModule,
     ContactLensSpecsModule,
-    FearturesModule
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

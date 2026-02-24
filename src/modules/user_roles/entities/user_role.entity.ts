@@ -10,11 +10,11 @@ export class UserRole {
   @PrimaryColumn({ name: 'role_id', type: 'varchar', length: 15 })
   role_id: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
-  @ManyToOne(() => Role, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Role, (role) => role.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   role: Role;
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -10,9 +10,15 @@ export class RolesService {
   constructor(
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
-  ) {}
+  ) { }
 
   async create(createRoleDto: CreateRoleDto) {
+    // Kiểm tra trùng lặp
+    const existingRole = await this.rolesRepository.findOneBy({ name: createRoleDto.name });
+    if (existingRole) {
+      throw new ConflictException(`Role '${createRoleDto.name}' đã tồn tại!`);
+    }
+
     const newRole = this.rolesRepository.create(createRoleDto);
     return await this.rolesRepository.save(newRole);
   }

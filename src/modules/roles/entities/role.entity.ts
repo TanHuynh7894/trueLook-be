@@ -1,4 +1,5 @@
-import { BeforeInsert, Column, Entity, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, PrimaryColumn, OneToMany } from 'typeorm';
+import { UserRole } from '../../user_roles/entities/user_role.entity';
 
 @Entity('roles')
 export class Role {
@@ -8,10 +9,11 @@ export class Role {
   @Column()
   name: string;
 
+  @OneToMany(() => UserRole, (userRole) => userRole.role)
+  userRoles: UserRole[];
+
   @BeforeInsert()
   generateId() {
     this.id = Date.now().toString();
   }
-
-  
 }

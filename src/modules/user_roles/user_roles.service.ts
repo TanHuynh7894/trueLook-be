@@ -82,4 +82,30 @@ export class UserRolesService {
       statusCode: 200,
     };
   }
+
+  async assignRoleByName(userId: string, roleName: string) {
+    // 1. Tìm Role dựa trên tên (ví dụ: 'Customer')
+    const role = await this.rolesRepository.findOneBy({ name: roleName });
+    if (!role) {
+      throw new NotFoundException(`Role với tên "${roleName}" không tồn tại trong hệ thống!`);
+    }
+
+    // 2. Kiểm tra xem User đã có quyền này chưa để tránh lỗi trùng lặp
+    const existingUserRole = await this.userRolesRepository.findOneBy({
+      user_id: userId,
+      role_id: role.id,
+    });
+
+    if (existingUserRole) {
+      return existingUserRole;
+    }
+
+    // 3. Tạo mới bản ghi trong bảng trung gian user_roles
+    const newUserRole = this.userRolesRepository.create({
+      user_id: userId,
+      role_id: role.id,
+    });
+
+    return await this.userRolesRepository.save(newUserRole);
+  }
 }
