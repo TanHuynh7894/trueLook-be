@@ -1,11 +1,21 @@
-import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { UserRolesService } from '../user_roles/user_roles.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { randomBytes } from 'crypto';
 
+interface GoogleProfilePayload {
+  email?: string;
+  fullName?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -17,72 +27,71 @@ export class AuthService {
   ) {}
 
   async signIn(username: string, pass: string) {
-    // 1. Tìm user trong database (đã lấy kèm mảng userRoles nhờ hàm findOneByUsername mới sửa)
     const user = await this.usersService.findOneByUsername(username);
-    if (!user) throw new UnauthorizedException('Tài khoản không tồn tại!');
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Tai khoan khong ton tai!');
+    }
 
-    // 2. So sánh mật khẩu
     const isMatch = await bcrypt.compare(pass, user.password);
-    if (!isMatch) throw new UnauthorizedException('Mật khẩu không chính xác!');
+    if (!isMatch) {
+      throw new UnauthorizedException('Mat khau khong chinh xac!');
+    }
 
-    // 3. Trích xuất danh sách tên quyền (Ví dụ: ['Customer'])
-    const roles = user.userRoles?.map((ur) => ur.role.name) || [];
+    return this.buildAuthResponse(user);
+  }
 
-    // 4. Tạo Payload cho JWT (Phải có roles thì Guard mới chạy được)
-    const payload = { 
-      sub: user.id, 
-      username: user.username,
-      fullName: user.fullName,
-      roles: roles
-    };
+  async signInWithGoogle(googleUser: GoogleProfilePayload) {
+    const email = googleUser?.email?.trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Khong lay duoc email tu tai khoan Google');
+    }
 
-    // 5. TẠO CÙNG LÚC 2 TOKEN (Access & Refresh)
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_ACCESS_SECRET || 'SECRET_KEY',
-        expiresIn: '15m', 
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || 'REFRESH_SECRET_KEY',
-        expiresIn: '7d', 
-      }),
-    ]);
+    let user = await this.usersService.findOneByEmailWithRoles(email);
 
-    // 6. Lưu Refresh Token xuống DB
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
+    if (!user) {
+      const usernameSeed = email.split('@')[0] || 'googleuser';
+      const username = await this.generateUniqueUsername(usernameSeed);
 
-    // 7. Lọc bỏ các thông tin nhạy cảm trước khi trả về Frontend
-    const { password, refreshToken: rt, resetOtp, resetOtpExpires, userRoles, ...fullUserInfo } = user;
+      const createUserDto: CreateUserDto = {
+        username,
+        password: randomBytes(32).toString('hex'),
+        fullName: googleUser.fullName || username,
+        email,
+        gender: 'O',
+        birthday: '2000-01-01',
+      };
 
-    // 8. Trả về cho Client
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        ...fullUserInfo, 
-        roles: roles 
-      }
-    };
+      const createdUser = await this.usersService.create(createUserDto);
+      await this.userRolesService.assignRoleByName(createdUser.id, 'Customer');
+      user = await this.usersService.findOneByUsername(username);
+    }
+
+    if (!user) {
+      throw new UnauthorizedException('Dang nhap Google that bai');
+    }
+
+    return this.buildAuthResponse(user);
   }
 
   async refreshTokens(userId: string, rt: string) {
-    // Tìm user theo ID (trong users.service.ts ông có sẵn hàm findOne rồi)
-    const user = await this.usersService.findOne(userId); 
-    
-    // Nếu không có user hoặc user đã bị xóa refresh_token (do đăng xuất)
+    const user = await this.usersService.findOneWithRoles(userId);
     if (!user || !user.refreshToken) {
-      throw new UnauthorizedException('Truy cập bị từ chối!');
+      throw new UnauthorizedException('Truy cap bi tu choi!');
     }
 
-    // So sánh chuỗi token client gửi lên với chuỗi token đã hash trong DB
     const rtMatches = await bcrypt.compare(rt, user.refreshToken);
     if (!rtMatches) {
-      throw new UnauthorizedException('Refresh Token không hợp lệ hoặc đã bị thu hồi!');
+      throw new UnauthorizedException('Refresh Token khong hop le hoac da bi thu hoi!');
     }
 
-    // NẾU HỢP LỆ -> TẠO LẠI 2 TOKEN MỚI TOANH
-    const payload = { sub: user.id, username: user.username, fullName: user.fullName };
-    
+    const roles = user.userRoles?.map((ur) => ur.role.name) || [];
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      fullName: user.fullName,
+      roles,
+    };
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_SECRET || 'SECRET_KEY',
@@ -94,7 +103,6 @@ export class AuthService {
       }),
     ]);
 
-    // Cập nhật lại token mới vào DB
     await this.usersService.updateRefreshToken(user.id, refreshToken);
 
     return {
@@ -104,102 +112,134 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    // Xóa refresh_token trong Database bằng cách set nó về null
     await this.usersService.updateRefreshToken(userId, null);
-    return { message: 'Đăng xuất thành công, đã thu hồi Token!' };
+    return { message: 'Dang xuat thanh cong, da thu hoi Token!' };
   }
 
   async forgotPassword(email: string) {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) {
-      throw new NotFoundException('Email không tồn tại trong hệ thống!');
+      throw new NotFoundException('Email khong ton tai trong he thong!');
     }
 
-    // Tạo mã OTP 6 số ngẫu nhiên (từ 100000 đến 999999)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Set thời gian hết hạn là 15 phút tính từ hiện tại
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Lưu OTP vào Database
     await this.usersService.saveResetOtp(user.id, otp, expiresAt);
 
-    // In ra console để test (Thực tế ông sẽ gửi mail chứa biến otp này)
-    console.log(`[TEST] Mã OTP của user ${email} là: ${otp}`);
+    console.log(`[TEST] Ma OTP cua user ${email} la: ${otp}`);
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Mã OTP đặt lại mật khẩu - True Look',
-      html: `<b>Mã OTP của bạn là: ${otp}</b>`,
+      subject: 'Ma OTP dat lai mat khau - True Look',
+      html: `<b>Ma OTP cua ban la: ${otp}</b>`,
     });
-    return { message: 'Mã xác nhận 6 số đã được gửi đến email của bạn!' };
+    return { message: 'Ma xac nhan 6 so da duoc gui den email cua ban!' };
   }
 
   async resetPassword(email: string, otp: string, newPass: string) {
     const user = await this.usersService.findOneByEmail(email);
-    
+
     if (!user || !user.resetOtp || !user.resetOtpExpires) {
-      throw new BadRequestException('Yêu cầu không hợp lệ!');
+      throw new BadRequestException('Yeu cau khong hop le!');
     }
 
-    // 1. Kiểm tra thời gian hết hạn
     if (new Date() > user.resetOtpExpires) {
-      throw new BadRequestException('Mã OTP đã hết hạn, vui lòng yêu cầu mã mới!');
+      throw new BadRequestException('Ma OTP da het han, vui long yeu cau ma moi!');
     }
 
-    // 2. Kiểm tra mã OTP có khớp không
     if (user.resetOtp !== otp) {
-      throw new BadRequestException('Mã OTP không chính xác!');
+      throw new BadRequestException('Ma OTP khong chinh xac!');
     }
 
-    // 3. Nếu đúng hết -> Băm mật khẩu mới và lưu
     const hashedPass = await bcrypt.hash(newPass, 10);
     await this.usersService.updatePassword(user.id, hashedPass);
 
-    // 4. Xóa mã OTP đi để không dùng lại được nữa
     await this.usersService.clearResetOtp(user.id);
-    
-    // (Tùy chọn) Xóa luôn Refresh Token để user phải đăng nhập lại
     await this.usersService.updateRefreshToken(user.id, null);
 
-    return { message: 'Đổi mật khẩu mới thành công! Vui lòng đăng nhập lại.' };
+    return { message: 'Doi mat khau moi thanh cong! Vui long dang nhap lai.' };
   }
 
   async register(createUserDto: CreateUserDto) {
-    // 1. Dùng service của Users để tạo user
     const user = await this.usersService.create(createUserDto);
-
-    // 2. Gán role 'Customer' 
     await this.userRolesService.assignRoleByName(user.id, 'Customer');
 
-    // 3. Trả về ID cực gọn
-    return { 
-        message: 'Đăng ký thành công!',
-        id: user.id 
+    return {
+      message: 'Dang ky thanh cong!',
+      id: user.id,
     };
   }
 
   async changePassword(userId: string, oldPass: string, newPass: string) {
-    // 1. Tìm user hiện tại đang request
     const user = await this.usersService.findOne(userId);
     if (!user) {
-      throw new NotFoundException('Không tìm thấy tài khoản!');
+      throw new NotFoundException('Khong tim thay tai khoan!');
     }
 
-    // 2. Kiểm tra xem mật khẩu cũ nhập vào có đúng không
     const isMatch = await bcrypt.compare(oldPass, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Mật khẩu cũ không chính xác!');
+      throw new BadRequestException('Mat khau cu khong chinh xac!');
     }
 
-    // 3. Nếu đúng -> Băm mật khẩu mới
     const hashedNewPass = await bcrypt.hash(newPass, 10);
-
-    // 4. Lưu xuống Database (Tận dụng lại hàm updatePassword lúc nãy)
     await this.usersService.updatePassword(userId, hashedNewPass);
-
-    // 5. (Tùy chọn) Thu hồi Refresh Token hiện tại để bắt các thiết bị khác phải đăng nhập lại
     await this.usersService.updateRefreshToken(userId, null);
 
-    return { message: 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.' };
+    return { message: 'Doi mat khau thanh cong! Vui long dang nhap lai.' };
+  }
+
+  private async buildAuthResponse(user: any) {
+    const roles = user.userRoles?.map((ur: any) => ur.role.name) || [];
+
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      fullName: user.fullName,
+      roles,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_ACCESS_SECRET || 'SECRET_KEY',
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_REFRESH_SECRET || 'REFRESH_SECRET_KEY',
+        expiresIn: '7d',
+      }),
+    ]);
+
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
+    const {
+      password,
+      refreshToken: currentRefreshToken,
+      resetOtp,
+      resetOtpExpires,
+      userRoles,
+      ...fullUserInfo
+    } = user;
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        ...fullUserInfo,
+        roles,
+      },
+    };
+  }
+
+  private async generateUniqueUsername(seed: string) {
+    const sanitized = seed.replace(/[^a-zA-Z0-9._-]/g, '') || 'googleuser';
+    let candidate = sanitized;
+    let index = 1;
+
+    while (await this.usersService.findOneByUsername(candidate)) {
+      candidate = `${sanitized}${index}`;
+      index += 1;
+    }
+
+    return candidate;
   }
 }

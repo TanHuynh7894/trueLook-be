@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, HttpCode, HttpStatus, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginDto } from './dto/login.dto';
@@ -15,27 +15,38 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  // 1. Đăng ký tài khoản
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Redirect login by Google OAuth' })
+  async googleAuth() {
+    return;
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  @HttpCode(HttpStatus.OK)
+  googleAuthCallback(@Req() req: any) {
+    return this.authService.signInWithGoogle(req.user);
+  }
+
   @Post('register')
-  @ApiOperation({ summary: 'Đăng ký tài khoản khách hàng mới' })
+  @ApiOperation({ summary: 'Dang ky tai khoan khach hang moi' })
   @ApiBody({ type: RegisterDto })
   @HttpCode(HttpStatus.CREATED)
   register(@Body() registerDto: any) {
     return this.authService.register(registerDto);
   }
 
-  // 2. Đăng nhập
   @Post('login')
-  @ApiOperation({ summary: 'Đăng nhập' })
+  @ApiOperation({ summary: 'Dang nhap' })
   @ApiBody({ type: LoginDto })
   @HttpCode(HttpStatus.OK)
-  @ApiBody({ type: LoginDto})
   login(@Body() loginDto: LoginDto) {
     return this.authService.signIn(loginDto.username, loginDto.password);
   }
 
-  // 3. Gia hạn Token (Cần Refresh Token Vệ sĩ)
-  @UseGuards(AuthGuard('jwt-refresh')) 
+  @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
   @ApiBody({ type: RefreshTokenDto })
   @HttpCode(HttpStatus.OK)
@@ -45,29 +56,26 @@ export class AuthController {
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
-  // 4. Đăng xuất
-  @UseGuards(AuthGuard('jwt')) 
+  @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('access-token')
   @Post('logout')
-  @ApiOperation({ summary: 'Đăng xuất' })
+  @ApiOperation({ summary: 'Dang xuat' })
   @HttpCode(HttpStatus.OK)
   logout(@Req() req: any) {
     const userId = req.user.sub;
     return this.authService.logout(userId);
   }
 
-  // 5. Quên mật khẩu
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Gửi yêu cầu khôi phục mật khẩu' })
+  @ApiOperation({ summary: 'Gui yeu cau khoi phuc mat khau' })
   @ApiBody({ type: ForgotPasswordDto })
   @HttpCode(HttpStatus.OK)
   forgotPassword(@Body('email') email: string) {
     return this.authService.forgotPassword(email);
   }
 
-  // 6. Đặt lại mật khẩu
   @Post('reset-password')
-  @ApiOperation({ summary: 'Đặt lại mật khẩu bằng mã OTP/Token' })
+  @ApiOperation({ summary: 'Dat lai mat khau bang OTP/Token' })
   @ApiBody({ type: ResetPasswordDto })
   @HttpCode(HttpStatus.OK)
   resetPassword(
@@ -78,10 +86,9 @@ export class AuthController {
     return this.authService.resetPassword(email, otp, newPassword);
   }
 
-  // 7. Đổi mật khẩu chủ động
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Đổi mật khẩu khi đang đăng nhập' })
+  @ApiOperation({ summary: 'Doi mat khau khi dang dang nhap' })
   @ApiBody({ type: ChangePasswordDto })
   @Post('change-password')
   @HttpCode(HttpStatus.OK)

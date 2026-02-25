@@ -43,6 +43,19 @@ export class UsersService {
     return user;
   }
 
+  async findOneWithRoles(id: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['userRoles', 'userRoles.role'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Khong tim thay user co id: ${id}`);
+    }
+
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.usersRepository.update(id, updateUserDto);
     return this.findOne(id);
@@ -77,6 +90,13 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ email });
+  }
+
+  async findOneByEmailWithRoles(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      where: { email },
+      relations: ['userRoles', 'userRoles.role'],
+    });
   }
 
   async saveResetOtp(userId: string, otp: string, expiresAt: Date) {
