@@ -15,7 +15,17 @@ async function bootstrap() {
     .setTitle('Dự án True Look')
     .setDescription('Tài liệu API cho hệ thống True Look')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Token',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

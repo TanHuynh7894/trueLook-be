@@ -7,7 +7,9 @@ import { UserRolesService } from '../user_roles/user_roles.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('users')
 export class UsersController {
   constructor(
