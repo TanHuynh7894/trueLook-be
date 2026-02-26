@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ProductsController } from './products.controller';
+import { ProductsAdminController, ProductsController, ProductsPublicController } from './products.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Brand } from '../brands/entities/brand.entity';
@@ -10,9 +10,7 @@ import { Image } from '../images/entities/image.entity';
 import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
-import { ProductsPublicController } from './products.public.controller';
 import { Category } from '../categories/entities/category.entity';
-import { ProductsAdminController } from './products.admin.controller';
 
 @Module({
   imports: [

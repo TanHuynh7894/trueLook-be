@@ -40,7 +40,7 @@ export class BrandsService {
   async findOne(id: string) {
     const brand = await this.brandsRepository.findOneBy({ id });
     if (!brand) {
-      throw new NotFoundException(`Không tìm thấy brand có id: ${id}`);
+      throw new NotFoundException(`Khong tim thay brand co id: ${id}`);
     }
     return brand;
   }
@@ -53,10 +53,10 @@ export class BrandsService {
   async remove(id: string) {
     const result = await this.brandsRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Không tìm thấy brand có id: ${id} để xóa`);
+      throw new NotFoundException(`Khong tim thay brand co id: ${id} de xoa`);
     }
     return {
-      message: `Đã xóa thành công brand có id: ${id}`,
+      message: `Da xoa thanh cong brand co id: ${id}`,
       statusCode: 200,
     };
   }
