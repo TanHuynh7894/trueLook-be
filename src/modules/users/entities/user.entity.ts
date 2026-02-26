@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryColumn, BeforeInsert, OneToMany, Check } from 'typeorm';
 import { UserRole } from '../../user_roles/entities/user_role.entity';
 
 @Entity('users')
+@Check(`"status" IN (0, 1)`)
 export class User {
 
   @PrimaryColumn({ type: 'varchar', length: 15 }) 
@@ -33,6 +34,9 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true, name: 'reset_otp_expires' })
   resetOtpExpires: Date | null;
+
+  @Column({ type: 'int', default: 1 }) // Mặc định là 1 (Hoạt động)
+  status: number;
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles: UserRole[];

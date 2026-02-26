@@ -31,12 +31,19 @@ export class UsersService {
     return await this.usersRepository.save(newUser);
   }
 
-  findAll() {
-    return this.usersRepository.find();
+  async findAll() {
+    return this.usersRepository.find({ 
+      relations: ['userRoles.role'],        
+      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status']
+    });                               
   }
 
   async findOne(id: string) {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['userRoles.role'], 
+      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status']
+    });            
     if (!user) {
       throw new NotFoundException(`Không tìm thấy user có id: ${id}`);
     }
@@ -57,18 +64,28 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.usersRepository.update(id, updateUserDto);
+    // 1. Tách password ra (nếu người dùng cố tình gửi lên) và bỏ đi, chỉ lấy phần dữ liệu an toàn (safeData)
+    const { password, ...safeData } = updateUserDto as any; 
+
+    // 2. Chỉ update những trường an toàn
+    await this.usersRepository.update(id, safeData);
     return this.findOne(id);
   }
 
   async remove(id: string) {
-    const result = await this.usersRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Không tìm thấy user có id: ${id} để xóa`);
+    // 1. Kiểm tra xem user có tồn tại không
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`Không tìm thấy tài khoản với ID: ${id}`);
     }
+
+    // 2. Thực hiện Soft Delete: Cập nhật status = 0
+    await this.usersRepository.update(id, { status: 0 });
+
+    // 3. Trả về thông báo cho đẹp
     return {
-      message: `Đã xóa thành công user có id: ${id}`,
-      statusCode: 200
+      statusCode: 200,
+      message: `Đã khóa (xóa mềm) tài khoản ${user.username} thành công!`,
     };
   }
 
@@ -111,6 +128,19 @@ export class UsersService {
       resetOtp: null,
       resetOtpExpires: null
     });
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['userRoles', 'userRoles.role'],
+      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status'], 
+    });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy thông tin người dùng!');
+    }
+    return user;
   }
 
 }

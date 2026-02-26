@@ -1,37 +1,47 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
 import { UserRolesService } from './user_roles.service';
 import { CreateUserRoleDto } from './dto/create-user_role.dto';
-import { UpdateUserRoleDto } from './dto/update-user_role.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
+@ApiTags('UserRoles')
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard('jwt'), RolesGuard) 
+@Roles('System Admin', 'Manager')
 @Controller('user-roles')
 export class UserRolesController {
   constructor(private readonly userRolesService: UserRolesService) {}
 
-  @Post()
-  create(@Body() createUserRoleDto: CreateUserRoleDto) {
-    return this.userRolesService.create(createUserRoleDto);
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Lấy TẤT CẢ quyền của 1 nhân viên (Đã gom nhóm)' })
+  getRolesOfUser(@Param('userId') userId: string) {
+    return this.userRolesService.getRolesOfUser(userId);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Lấy danh sách tất cả phân quyền' })
   findAll() {
     return this.userRolesService.findAll();
   }
 
-  @Get(':userId/:roleId')
-  findOne(@Param('userId') userId: string, @Param('roleId') roleId: string) {
-    return this.userRolesService.findOne(userId, roleId);
-  }
-
-  @Patch(':userId/:roleId')
-  update(
+  @Post(':userId/sync')
+  @ApiOperation({ summary: 'Đồng bộ quyền (Gắn/Gỡ hàng loạt bằng mảng ID)' })
+  @ApiBody({ schema: { example: { roleIds: ['ID_QUYEN_1', 'ID_QUYEN_2'] } } })
+  syncRoles(
     @Param('userId') userId: string,
-    @Param('roleId') roleId: string,
-    @Body() updateUserRoleDto: UpdateUserRoleDto,
+    @Body('roleIds') roleIds: string[],
   ) {
-    return this.userRolesService.update(userId, roleId, updateUserRoleDto);
+    this.userRolesService.syncRoles(userId, roleIds);
+    return {
+      statusCode: 200,
+      message: `Đã đồng bộ quyền cho user ${userId} thành công!`,
+    };
   }
 
   @Delete(':userId/:roleId')
+  @ApiOperation({ summary: 'Xóa một phân quyền lẻ' })
   remove(@Param('userId') userId: string, @Param('roleId') roleId: string) {
     return this.userRolesService.remove(userId, roleId);
   }

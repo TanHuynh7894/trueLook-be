@@ -1,4 +1,12 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserRoleDto } from './create-user_role.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsString } from 'class-validator';
 
-export class UpdateUserRoleDto extends PartialType(CreateUserRoleDto) {}
+export class UpdateUserRoleDto {
+  @ApiProperty({ 
+    example: ['System Admin', 'Manager'],
+    description: 'Danh sách các quyền muốn gán cho User' 
+  })
+  @IsArray()
+  @IsString({ each: true })
+  roleIds: string[];
+}
