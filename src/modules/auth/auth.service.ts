@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRolesService } from '../user_roles/user_roles.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { randomBytes } from 'crypto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 interface GoogleProfilePayload {
   email?: string;
@@ -177,22 +178,35 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId: string, oldPass: string, newPass: string) {
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    // 🪄 Lấy dữ liệu từ dto ra. Tên biến ở đây sẽ khớp 100% với file DTO của ông
+    const { oldPassword, newPassword } = dto; 
+    
     const user = await this.usersService.findOne(userId);
-    if (!user) {
-      throw new NotFoundException('Khong tim thay tai khoan!');
+    
+    // Log để kiểm tra, chắc chắn lần này sẽ hiện đầy đủ mật khẩu
+    console.log('userid:', userId)
+    
+    console.log('user:', user);
+    console.log('Old Password:', oldPassword);
+    console.log('New Password:', newPassword);
+
+    if (!user || !user.password) {
+      throw new NotFoundException('Không tìm thấy tài khoản hoặc thông tin mật khẩu!');
     }
 
-    const isMatch = await bcrypt.compare(oldPass, user.password);
+    // Thực hiện so sánh với mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Mat khau cu khong chinh xac!');
+      throw new BadRequestException('Mật khẩu cũ không chính xác!');
     }
 
-    const hashedNewPass = await bcrypt.hash(newPass, 10);
+    // Hash mật khẩu mới và cập nhật
+    const hashedNewPass = await bcrypt.hash(newPassword, 10);
     await this.usersService.updatePassword(userId, hashedNewPass);
     await this.usersService.updateRefreshToken(userId, null);
 
-    return { message: 'Doi mat khau thanh cong! Vui long dang nhap lai.' };
+    return { message: 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.' };
   }
 
   private async buildAuthResponse(user: any) {

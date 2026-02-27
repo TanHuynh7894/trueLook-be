@@ -42,7 +42,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: ['userRoles.role'], 
-      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status']
+      select: ['id', 'username', 'email', 'fullName', 'password', 'gender', 'birthday', 'status']
     });            
     if (!user) {
       throw new NotFoundException(`Không tìm thấy user có id: ${id}`);

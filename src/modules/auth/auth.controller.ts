@@ -94,10 +94,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   changePassword(
     @Req() req: any,
-    @Body('oldPassword') oldPassword: string,
-    @Body('newPassword') newPassword: string,
+    @Body() dto: ChangePasswordDto,
   ) {
     const userId = req.user.sub;
-    return this.authService.changePassword(userId, oldPassword, newPassword);
+    return this.authService.changePassword(userId, dto);
   }
 }
