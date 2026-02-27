@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ProductsAdminController, ProductsController, ProductsPublicController } from './products.controller';
+import { ProductsController } from './products.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Brand } from '../brands/entities/brand.entity';
@@ -26,7 +26,7 @@ import { Category } from '../categories/entities/category.entity';
       Category,
     ]),
   ],
-  controllers: [ProductsController, ProductsPublicController, ProductsAdminController],
+  controllers: [ProductsController],
   providers: [ProductsService],
 })
 export class ProductsModule {}

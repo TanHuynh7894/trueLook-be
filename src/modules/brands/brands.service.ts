@@ -46,6 +46,18 @@ export class BrandsService {
   }
 
   async update(id: string, updateBrandDto: UpdateBrandDto) {
+    if (updateBrandDto.name) {
+      const existedBrand = await this.brandsRepository
+        .createQueryBuilder('brand')
+        .where('LOWER(brand.name) = LOWER(:name)', { name: updateBrandDto.name.trim() })
+        .andWhere('brand.id != :id', { id })
+        .getOne();
+
+      if (existedBrand) {
+        throw new ConflictException('Da co brand do roi');
+      }
+    }
+
     await this.brandsRepository.update(id, updateBrandDto);
     return this.findOne(id);
   }

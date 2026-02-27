@@ -2,11 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { BrandsService } from './brands.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { AdminUpdateBrandDto } from './dto/admin-update-brand.dto';
 
 @ApiTags('Brands')
 @Controller('brands')
@@ -14,6 +13,10 @@ export class BrandsController {
   constructor(private readonly brandsService: BrandsService) {}
 
   @Post('create')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'Admin tao brand' })
   create(@Body() createBrandDto: CreateBrandDto) {
     return this.brandsService.create(createBrandDto);
   }
@@ -29,11 +32,20 @@ export class BrandsController {
   }
 
   @Patch('update/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'Admin hoac Manager cap nhat brand' })
+  @ApiConflictResponse({ description: 'Da co brand do roi' })
   update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
     return this.brandsService.update(id, updateBrandDto);
   }
 
   @Delete('remove/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'Admin hoac Manager xoa brand' })
   remove(@Param('id') id: string) {
     return this.brandsService.remove(id);
   }
@@ -49,27 +61,5 @@ export class BrandsPublicController {
   @ApiOperation({ summary: 'Lay thuong hieu dang active' })
   findActive() {
     return this.brandsService.findActive();
-  }
-}
-
-@ApiTags('Brands')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('System Admin', 'Admin', 'Manager')
-@Controller('api/v1/admin/brands')
-export class BrandsAdminController {
-  constructor(private readonly brandsService: BrandsService) {}
-
-  @Post()
-  @ApiOperation({ summary: 'Them thuong hieu moi' })
-  create(@Body() dto: CreateBrandDto) {
-    return this.brandsService.create(dto);
-  }
-
-  @Patch()
-  @ApiOperation({ summary: 'Sua thuong hieu theo id (truyen id trong body)' })
-  update(@Body() dto: AdminUpdateBrandDto) {
-    const { id, ...payload } = dto;
-    return this.brandsService.update(id, payload);
   }
 }

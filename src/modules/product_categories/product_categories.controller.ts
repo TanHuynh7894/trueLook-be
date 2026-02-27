@@ -6,7 +6,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { AdminAttachCategoryDto } from '../products/dto/admin-attach-category.dto';
 
 @ApiTags('ProductCategories')
 @Controller('product-categories')
@@ -14,6 +13,10 @@ export class ProductCategoriesController {
   constructor(private readonly productCategoriesService: ProductCategoriesService) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager gan san pham vao danh muc' })
   create(@Body() createProductCategoryDto: CreateProductCategoryDto) {
     return this.productCategoriesService.create(createProductCategoryDto);
   }
@@ -40,23 +43,5 @@ export class ProductCategoriesController {
   @Delete(':productId/:categoryId')
   remove(@Param('productId') productId: string, @Param('categoryId') categoryId: string) {
     return this.productCategoriesService.remove(productId, categoryId);
-  }
-}
-
-@ApiTags('ProductCategories')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('System Admin', 'Admin', 'Manager')
-@Controller('api/v1/admin/products')
-export class ProductCategoriesAdminController {
-  constructor(private readonly productCategoriesService: ProductCategoriesService) {}
-
-  @Post(':id/categories')
-  @ApiOperation({ summary: 'Gan san pham vao danh muc (ghi vao product_categories)' })
-  attachCategory(@Param('id') id: string, @Body() dto: AdminAttachCategoryDto) {
-    return this.productCategoriesService.create({
-      product_id: id,
-      category_id: dto.category_id,
-    });
   }
 }

@@ -13,6 +13,10 @@ export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager upload anh variant (truyen variant_id va path)' })
   create(@Body() createImageDto: CreateImageDto) {
     return this.imagesService.create(createImageDto);
   }
@@ -28,33 +32,20 @@ export class ImagesController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager cap nhat anh theo id' })
   update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
     return this.imagesService.update(id, updateImageDto);
   }
 
   @Delete(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager xoa anh theo id' })
   remove(@Param('id') id: string) {
-    return this.imagesService.remove(id);
-  }
-}
-
-@ApiTags('Images')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('System Admin', 'Admin', 'Manager')
-@Controller('api/v1/admin')
-export class ImagesAdminController {
-  constructor(private readonly imagesService: ImagesService) {}
-
-  @Post('variants/images')
-  @ApiOperation({ summary: 'Upload anh variant (ghi vao images)' })
-  uploadVariantImage(@Body() dto: CreateImageDto) {
-    return this.imagesService.create(dto);
-  }
-
-  @Delete('images/:id')
-  @ApiOperation({ summary: 'Xoa anh theo id' })
-  removeImage(@Param('id') id: string) {
     return this.imagesService.remove(id);
   }
 }

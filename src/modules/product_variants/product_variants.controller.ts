@@ -6,8 +6,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { AdminCreateVariantDto } from '../products/dto/admin-create-variant.dto';
-import { AdminUpdateVariantDto } from '../products/dto/admin-update-variant.dto';
 
 @ApiTags('ProductVariants')
 @Controller('product-variants')
@@ -15,6 +13,10 @@ export class ProductVariantsController {
   constructor(private readonly productVariantsService: ProductVariantsService) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager tao product variant' })
   create(@Body() createProductVariantDto: CreateProductVariantDto) {
     return this.productVariantsService.create(createProductVariantDto);
   }
@@ -30,37 +32,20 @@ export class ProductVariantsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager cap nhat gia va ton kho variant' })
   update(@Param('id') id: string, @Body() updateProductVariantDto: UpdateProductVariantDto) {
     return this.productVariantsService.update(id, updateProductVariantDto);
   }
 
   @Delete(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'System Admin hoac Manager xoa product variant' })
   remove(@Param('id') id: string) {
     return this.productVariantsService.remove(id);
-  }
-}
-
-@ApiTags('ProductVariants')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('System Admin', 'Admin', 'Manager')
-@Controller('api/v1/admin')
-export class ProductVariantsAdminController {
-  constructor(private readonly productVariantsService: ProductVariantsService) {}
-
-  @Post('products/:id/variants')
-  @ApiOperation({ summary: 'Tao SKU moi (ghi vao product_variants)' })
-  createVariant(@Param('id') id: string, @Body() dto: AdminCreateVariantDto) {
-    return this.productVariantsService.create({
-      ...dto,
-      product_id: id,
-      status: dto.status ?? 'active',
-    } as CreateProductVariantDto);
-  }
-
-  @Patch('variants/:id')
-  @ApiOperation({ summary: 'Cap nhat gia va ton kho variant' })
-  updateVariant(@Param('id') id: string, @Body() dto: AdminUpdateVariantDto) {
-    return this.productVariantsService.update(id, dto);
   }
 }

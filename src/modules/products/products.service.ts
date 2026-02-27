@@ -11,8 +11,8 @@ import { Image } from '../images/entities/image.entity';
 import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
-import { PublicProductsQueryDto } from './dto/public-products-query.dto';
 import { Category } from '../categories/entities/category.entity';
+import { ProductSearchQueryDto } from './dto/product-search-query.dto';
 
 @Injectable()
 export class ProductsService {
@@ -52,24 +52,19 @@ export class ProductsService {
     return await this.productsRepository.save(newProduct);
   }
 
-  findAll() {
-    return this.productsRepository.find();
-  }
-
-  async findPublicProducts(query: PublicProductsQueryDto) {
+  async findAll(query: ProductSearchQueryDto) {
     const queryBuilder = this.productsRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.brand', 'brand')
-      .where('LOWER(product.status) = :status', { status: 'active' });
-
-    if (query.brand_id) {
-      queryBuilder.andWhere('product.brand_id = :brandId', { brandId: query.brand_id });
-    }
+      .leftJoinAndSelect('product.brand', 'brand');
 
     if (query.search) {
       queryBuilder.andWhere('(product.name ILIKE :search OR product.code ILIKE :search)', {
         search: `%${query.search}%`,
       });
+    }
+
+    if (query.brand_id) {
+      queryBuilder.andWhere('product.brand_id = :brandId', { brandId: query.brand_id });
     }
 
     if (query.product_type) {
@@ -87,28 +82,7 @@ export class ProductsService {
       );
     }
 
-    const products = await queryBuilder
-      .orderBy('product.create_at', 'DESC')
-      .getMany();
-
-    if (!products.length) {
-      const filters = [
-        query.search ? `search="${query.search}"` : null,
-        query.brand_id ? `brand_id="${query.brand_id}"` : null,
-        query.category_id ? `category_id="${query.category_id}"` : null,
-        query.product_type ? `product_type="${query.product_type}"` : null,
-      ]
-        .filter(Boolean)
-        .join(', ');
-
-      throw new NotFoundException(
-        filters
-          ? `Khong tim thay san pham voi bo loc: ${filters}`
-          : 'Khong tim thay san pham active',
-      );
-    }
-
-    return products;
+    return queryBuilder.orderBy('product.create_at', 'DESC').getMany();
   }
 
   async findOne(id: string) {
@@ -119,12 +93,11 @@ export class ProductsService {
     return product;
   }
 
-  async findPublicProductDetail(id: string) {
+  async findOneDetail(id: string) {
     const product = await this.productsRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.brand', 'brand')
       .where('product.id = :id', { id })
-      .andWhere('LOWER(product.status) = :status', { status: 'active' })
       .getOne();
 
     if (!product) {
@@ -137,27 +110,19 @@ export class ProductsService {
           where: { product_id: id },
           relations: ['category'],
         }),
-        this.productVariantsRepository
-          .createQueryBuilder('variant')
-          .where('variant.product_id = :productId', { productId: id })
-          .andWhere('LOWER(variant.status) = :status', { status: 'active' })
-          .orderBy('variant.create_at', 'ASC')
-          .getMany(),
-        this.frameSpecsRepository
-          .createQueryBuilder('frameSpec')
-          .where('frameSpec.product_id = :productId', { productId: id })
-          .andWhere('LOWER(frameSpec.status) = :status', { status: 'active' })
-          .getMany(),
-        this.rxLensSpecsRepository
-          .createQueryBuilder('rxSpec')
-          .where('rxSpec.product_id = :productId', { productId: id })
-          .andWhere('LOWER(rxSpec.status) = :status', { status: 'active' })
-          .getMany(),
-        this.contactLensSpecsRepository
-          .createQueryBuilder('contactSpec')
-          .where('contactSpec.product_id = :productId', { productId: id })
-          .andWhere('LOWER(contactSpec.status) = :status', { status: 'active' })
-          .getMany(),
+        this.productVariantsRepository.find({
+          where: { product_id: id },
+          order: { create_at: 'ASC' },
+        }),
+        this.frameSpecsRepository.find({
+          where: { product_id: id },
+        }),
+        this.rxLensSpecsRepository.find({
+          where: { product_id: id },
+        }),
+        this.contactLensSpecsRepository.find({
+          where: { product_id: id },
+        }),
       ]);
 
     const variantIds = variants.map((variant) => variant.id);
@@ -202,27 +167,6 @@ export class ProductsService {
     }
 
     await this.productsRepository.update(id, updateProductDto);
-    return this.findOne(id);
-  }
-
-  async updateCoreInfo(
-    id: string,
-    payload: {
-      name?: string;
-      code?: string;
-      description?: string;
-    },
-  ) {
-    await this.findOne(id);
-
-    if (payload.code) {
-      const existingCode = await this.productsRepository.findOneBy({ code: payload.code });
-      if (existingCode && existingCode.id !== id) {
-        throw new ConflictException(`Product code ${payload.code} already exists`);
-      }
-    }
-
-    await this.productsRepository.update(id, payload);
     return this.findOne(id);
   }
 

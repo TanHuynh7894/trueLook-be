@@ -48,20 +48,6 @@ export class ProductVariantsService {
   async update(id: string, updateProductVariantDto: UpdateProductVariantDto) {
     await this.findOne(id);
 
-    if (updateProductVariantDto.product_id) {
-      const product = await this.productsRepository.findOneBy({ id: updateProductVariantDto.product_id });
-      if (!product) {
-        throw new NotFoundException(`Product with id ${updateProductVariantDto.product_id} not found`);
-      }
-    }
-
-    if (updateProductVariantDto.code) {
-      const existingCode = await this.productVariantsRepository.findOneBy({ code: updateProductVariantDto.code });
-      if (existingCode && existingCode.id !== id) {
-        throw new ConflictException(`Product variant code ${updateProductVariantDto.code} already exists`);
-      }
-    }
-
     await this.productVariantsRepository.update(id, updateProductVariantDto);
     return this.findOne(id);
   }
