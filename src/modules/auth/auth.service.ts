@@ -139,16 +139,23 @@ export class AuthService {
   async resetPassword(email: string, otp: string, newPass: string) {
     const user = await this.usersService.findOneByEmail(email);
 
+    // 1. Kiểm tra tồn tại
     if (!user || !user.resetOtp || !user.resetOtpExpires) {
-      throw new BadRequestException('Yeu cau khong hop le!');
-    }
+    throw new BadRequestException('Yêu cầu không hợp lệ hoặc mã OTP không tồn tại!');
+}
 
-    if (new Date() > user.resetOtpExpires) {
-      throw new BadRequestException('Ma OTP da het han, vui long yeu cau ma moi!');
-    }
+    // 2. Log ra để Debug (Nếu vẫn lỗi thì ông nhìn Log ở Terminal xem 2 thằng là gì)
+    console.log('OTP trong DB:', user.resetOtp);
+    console.log('OTP nhập vào:', otp);
 
-    if (user.resetOtp !== otp) {
+    // 3. So sánh chuẩn (Ép kiểu + Trim)
+    if (String(user.resetOtp).trim() !== String(otp).trim()) {
       throw new BadRequestException('Ma OTP khong chinh xac!');
+    }
+
+    // 4. Kiểm tra hết hạn
+    if (new Date() > user.resetOtpExpires) {
+      throw new BadRequestException('Ma OTP da het han!');
     }
 
     const hashedPass = await bcrypt.hash(newPass, 10);
