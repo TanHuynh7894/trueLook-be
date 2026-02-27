@@ -5,6 +5,7 @@ import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
 import { Repository } from 'typeorm';
 import { ProductVariant } from './entities/product_variant.entity';
 import { Product } from '../products/entities/product.entity';
+import { Image } from '../images/entities/image.entity';
 
 @Injectable()
 export class ProductVariantsService {
@@ -13,6 +14,8 @@ export class ProductVariantsService {
     private productVariantsRepository: Repository<ProductVariant>,
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    @InjectRepository(Image)
+    private imagesRepository: Repository<Image>,
   ) {}
 
   async create(createProductVariantDto: CreateProductVariantDto) {
@@ -72,5 +75,19 @@ export class ProductVariantsService {
       message: `Deleted product variant with id: ${id}`,
       statusCode: 200,
     };
+  }
+
+  async addImage(variantId: string, path: string) {
+    const variant = await this.productVariantsRepository.findOneBy({ id: variantId });
+    if (!variant) {
+      throw new NotFoundException(`Product variant with id ${variantId} not found`);
+    }
+
+    const image = this.imagesRepository.create({
+      variant_id: variantId,
+      path,
+    });
+
+    return this.imagesRepository.save(image);
   }
 }
