@@ -1,34 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { AddressesService } from './addresses.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@Controller('addresses')
+@ApiTags('Addresses')
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard('jwt'))
+@Controller('api/addresses') 
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}
 
-  @Post()
-  create(@Body() createAddressDto: CreateAddressDto) {
-    return this.addressesService.create(createAddressDto);
-  }
-
   @Get()
-  findAll() {
-    return this.addressesService.findAll();
+  @ApiOperation({ summary: 'Lấy danh sách địa chỉ (Join addresses với user_id hiện tại)' })
+  findAll(@Req() req: any) {
+    const userId = req.user.sub;
+    return this.addressesService.findAll(userId);
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.addressesService.findOne(id);
+  
+  @Post()
+  @ApiOperation({ summary: 'Thêm sổ địa chỉ mới' })
+  create(@Req() req: any, @Body() createAddressDto: CreateAddressDto) {
+    const userId = req.user.sub;
+    return this.addressesService.create(userId, createAddressDto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAddressDto: UpdateAddressDto) {
-    return this.addressesService.update(id, updateAddressDto);
+  @ApiOperation({ summary: 'Sửa địa chỉ' })
+  update(
+    @Req() req: any, 
+    @Param('id') id: string, 
+    @Body() updateAddressDto: UpdateAddressDto
+  ) {
+    const userId = req.user.sub;
+    return this.addressesService.update(userId, id, updateAddressDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.addressesService.remove(id);
+  @ApiOperation({ summary: 'Xóa địa chỉ' })
+  remove(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.sub;
+    return this.addressesService.remove(userId, id);
   }
 }

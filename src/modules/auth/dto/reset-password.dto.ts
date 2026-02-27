@@ -16,7 +16,7 @@ export class ResetPasswordDto {
   })
   @IsNotEmpty()
   @IsString()
-  opt: string;
+  otp: string;
 
   @ApiProperty({ 
     example: 'NewPassword123!', 

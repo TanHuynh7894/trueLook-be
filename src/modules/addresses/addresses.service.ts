@@ -1,62 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
-import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AddressesService {
   constructor(
     @InjectRepository(Address)
-    private addressesRepository: Repository<Address>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly addressesRepository: Repository<Address>,
   ) {}
 
-  async create(createAddressDto: CreateAddressDto) {
-    const user = await this.usersRepository.findOneBy({ id: createAddressDto.user_id });
-    if (!user) {
-      throw new NotFoundException(`User with id ${createAddressDto.user_id} not found`);
-    }
-
-    const newAddress = this.addressesRepository.create(createAddressDto);
-    return await this.addressesRepository.save(newAddress);
+  async create(userId: string, dto: CreateAddressDto) {
+    const newAddress = this.addressesRepository.create({
+      ...dto,
+      user_id: userId,
+    });
+    return this.addressesRepository.save(newAddress);
   }
 
-  findAll() {
-    return this.addressesRepository.find();
+  async findAll(userId: string) {
+    return this.addressesRepository.find({
+      where: { user_id: userId },
+    });
   }
 
-  async findOne(id: string) {
-    const address = await this.addressesRepository.findOneBy({ id });
+  async update(userId: string, addressId: string, dto: UpdateAddressDto) {
+    const address = await this.addressesRepository.findOne({ 
+      where: { id: addressId, user_id: userId } 
+    });
+    
     if (!address) {
-      throw new NotFoundException(`Address with id ${id} not found`);
-    }
-    return address;
-  }
-
-  async update(id: string, updateAddressDto: UpdateAddressDto) {
-    if (updateAddressDto.user_id) {
-      const user = await this.usersRepository.findOneBy({ id: updateAddressDto.user_id });
-      if (!user) {
-        throw new NotFoundException(`User with id ${updateAddressDto.user_id} not found`);
-      }
+      throw new NotFoundException('Không tìm thấy địa chỉ này!');
     }
 
-    await this.addressesRepository.update(id, updateAddressDto);
-    return this.findOne(id);
+    Object.assign(address, dto);
+    return this.addressesRepository.save(address);
   }
 
-  async remove(id: string) {
-    const result = await this.addressesRepository.delete(id);
+  async remove(userId: string, addressId: string) {
+    const result = await this.addressesRepository.delete({ id: addressId, user_id: userId });
+    
     if (result.affected === 0) {
-      throw new NotFoundException(`Address with id ${id} not found for delete`);
+      throw new NotFoundException('Không tìm thấy địa chỉ để xóa!');
     }
-    return {
-      message: `Deleted address with id: ${id}`,
-      statusCode: 200,
-    };
+    
+    return { message: 'Đã xóa địa chỉ thành công' };
   }
 }
