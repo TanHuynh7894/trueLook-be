@@ -21,6 +21,13 @@ export class CategoriesService {
     return this.categoriesRepository.find();
   }
 
+  findActive() {
+    return this.categoriesRepository
+      .createQueryBuilder('category')
+      .where('LOWER(category.status) = :status', { status: 'active' })
+      .getMany();
+  }
+
   async findOne(id: string) {
     const category = await this.categoriesRepository.findOneBy({ id });
     if (!category) {
