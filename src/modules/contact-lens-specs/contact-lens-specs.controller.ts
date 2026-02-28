@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ContactLensSpecsService } from './contact-lens-specs.service';
 import { CreateContactLensSpecDto } from './dto/create-contact-lens-spec.dto';
 import { UpdateContactLensSpecDto } from './dto/update-contact-lens-spec.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('contact-lens-specs')
 export class ContactLensSpecsController {
   constructor(private readonly service: ContactLensSpecsService) {}

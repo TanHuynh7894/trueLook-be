@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RxLensSpecsService } from './rx-lens-specs.service';
 import { CreateRxLensSpecDto } from './dto/create-rx-lens-spec.dto';
 import { UpdateRxLensSpecDto } from './dto/update-rx-lens-spec.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('rx-lens-specs')
 export class RxLensSpecsController {
   constructor(private readonly service: RxLensSpecsService) {}

@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { FrameSpecsService } from './frame-specs.service';
 import { CreateFrameSpecDto } from './dto/create-frame-spec.dto';
 import { UpdateFrameSpecDto } from './dto/update-frame-spec.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('frame-specs')
 export class FrameSpecsController {
   constructor(private readonly service: FrameSpecsService) {}

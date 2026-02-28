@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { FeaturesService } from './feartures.service';
 import { CreateFeatureDto } from './dto/create-fearture.dto';
 import { UpdateFeatureDto } from './dto/update-fearture.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('features')
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}

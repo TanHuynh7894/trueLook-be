@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { OrderDetailsService } from './order_details.service';
 import { CreateOrderDetailDto } from './dto/create-order_detail.dto';
 import { UpdateOrderDetailDto } from './dto/update-order_detail.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('order-details')
 export class OrderDetailsController {
   constructor(private readonly orderDetailsService: OrderDetailsService) {}

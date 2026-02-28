@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProductPromotionsService } from './product_promotions.service';
 import { CreateProductPromotionDto } from './dto/create-product_promotion.dto';
 import { UpdateProductPromotionDto } from './dto/update-product_promotion.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('product-promotions')
 export class ProductPromotionsController {
   constructor(private readonly productPromotionsService: ProductPromotionsService) {}

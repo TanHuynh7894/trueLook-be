@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ShippingService } from './shipping.service';
 import { CreateShippingDto } from './dto/create-shipping.dto';
 import { UpdateShippingDto } from './dto/update-shipping.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('shipping')
 export class ShippingController {
   

@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CartItemsService } from './cart_items.service';
 import { CreateCartItemDto } from './dto/create-cart_item.dto';
 import { UpdateCartItemDto } from './dto/update-cart_item.dto';
+import { ApiExcludeController } from '@nestjs/swagger';
 
+@ApiExcludeController()
 @Controller('cart-items')
 export class CartItemsController {
   constructor(private readonly cartItemsService: CartItemsService) {}

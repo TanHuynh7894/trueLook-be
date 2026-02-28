@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TransitionsService } from './transitions.service';
 import { CreateTransitionDto } from './dto/create-transition.dto';
 import { UpdateTransitionDto } from './dto/update-transition.dto';
-
+import { ApiExcludeController } from '@nestjs/swagger';
+@ApiExcludeController()
 @Controller('transitions')
 export class TransitionsController {
   constructor(private readonly transitionsService: TransitionsService) {}
