@@ -23,7 +23,7 @@ export class ProductsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Tim kiem, loc san pham theo brand_id, category_id, product_type' })
+  @ApiOperation({ summary: 'Tim kiem, loc san pham theo category_name, product_type, min_price, max_price, color' })
   findAll(@Query() query: ProductSearchQueryDto) {
     return this.productsService.findAll(query);
   }

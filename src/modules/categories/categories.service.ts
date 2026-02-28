@@ -42,12 +42,15 @@ export class CategoriesService {
   }
 
   async remove(id: string) {
-    const result = await this.categoriesRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Category with id ${id} not found for delete`);
+    const category = await this.categoriesRepository.findOneBy({ id });
+    if (!category) {
+      throw new NotFoundException(`Khong tim thay Category voi id ${id}`);
     }
+
+    await this.categoriesRepository.update(id, { status: 'Inactive' });
+
     return {
-      message: `Deleted category with id: ${id}`,
+      message: `Da xoa category ${id} thanh cong`,
       statusCode: 200,
     };
   }

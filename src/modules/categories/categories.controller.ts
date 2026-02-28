@@ -44,18 +44,18 @@ export class CategoriesController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager xoa danh muc' })
+  @ApiOperation({ summary: 'System Admin hoac Manager chuyen danh muc sang Inactive' })
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }
 }
 
 @ApiTags('Categories')
-@Controller('api/v1/categories')
+@Controller('categories')
 export class CategoriesPublicController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Get()
+  @Get('active')
   @ApiOperation({ summary: 'Lay danh muc dang active' })
   findActive() {
     return this.categoriesService.findActive();
