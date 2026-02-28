@@ -45,21 +45,21 @@ export class BrandsController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'Admin hoac Manager xoa brand' })
+  @ApiOperation({ summary: 'Admin hoac Manager chuyen brand sang Inactive' })
   remove(@Param('id') id: string) {
     return this.brandsService.remove(id);
   }
 }
 
 @ApiTags('Brands')
-@Controller('api/v1/brands')
+@Controller('brand')
 export class BrandsPublicController {
   constructor(private readonly brandsService: BrandsService) {}
 
-  // GET /api/v1/brands - Lay danh muc/thuong hieu dang co status active
-  @Get()
+  // GET /brand/active - Lay danh sach thuong hieu dang active
+  @Get('active')
   @ApiOperation({ summary: 'Lay thuong hieu dang active' })
-  findActive() {
-    return this.brandsService.findActive();
+  findActiveBrands() {
+    return this.brandsService.findActiveBrands();
   }
 }

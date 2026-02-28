@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ProductSearchQueryDto {
   @ApiPropertyOptional({ example: 'ray' })
@@ -7,18 +8,30 @@ export class ProductSearchQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ example: '1772179859988' })
+  @ApiPropertyOptional({ example: 'Kính mát thời trang' })
   @IsOptional()
   @IsString()
-  brand_id?: string;
-
-  @ApiPropertyOptional({ example: '1772179859999' })
-  @IsOptional()
-  @IsString()
-  category_id?: string;
+  category_name?: string;
 
   @ApiPropertyOptional({ example: 'frame' })
   @IsOptional()
   @IsString()
   product_type?: string;
+
+  @ApiPropertyOptional({ example: 300000 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  min_price?: number;
+
+  @ApiPropertyOptional({ example: 1200000 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  max_price?: number;
+
+  @ApiPropertyOptional({ example: 'red' })
+  @IsOptional()
+  @IsString()
+  color?: string;
 }

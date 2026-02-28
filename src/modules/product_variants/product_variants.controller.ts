@@ -22,11 +22,13 @@ export class ProductVariantsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Xem tat ca cac product-variant' })
   findAll() {
     return this.productVariantsService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Xem chi tiet 1 product-variant' })
   findOne(@Param('id') id: string) {
     return this.productVariantsService.findOne(id);
   }
@@ -44,7 +46,7 @@ export class ProductVariantsController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager xoa product variant' })
+  @ApiOperation({ summary: 'System Admin hoac Manager chuyen da xoa san pham' })
   remove(@Param('id') id: string) {
     return this.productVariantsService.remove(id);
   }

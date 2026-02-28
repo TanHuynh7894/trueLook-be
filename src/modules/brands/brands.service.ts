@@ -30,7 +30,7 @@ export class BrandsService {
     return this.brandsRepository.find();
   }
 
-  findActive() {
+  findActiveBrands() {
     return this.brandsRepository
       .createQueryBuilder('brand')
       .where('LOWER(brand.status) = :status', { status: 'active' })
@@ -63,12 +63,15 @@ export class BrandsService {
   }
 
   async remove(id: string) {
-    const result = await this.brandsRepository.delete(id);
-    if (result.affected === 0) {
+    const brand = await this.brandsRepository.findOneBy({ id });
+    if (!brand) {
       throw new NotFoundException(`Khong tim thay brand co id: ${id} de xoa`);
     }
+
+    await this.brandsRepository.update(id, { status: 'Inactive' });
+
     return {
-      message: `Da xoa thanh cong brand co id: ${id}`,
+      message: `Da xoa brand ${id} thanh cong`,
       statusCode: 200,
     };
   }

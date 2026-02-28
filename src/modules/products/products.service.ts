@@ -58,13 +58,9 @@ export class ProductsService {
       .leftJoinAndSelect('product.brand', 'brand');
 
     if (query.search) {
-      queryBuilder.andWhere('(product.name ILIKE :search OR product.code ILIKE :search)', {
+      queryBuilder.andWhere('product.name ILIKE :search', {
         search: `%${query.search}%`,
       });
-    }
-
-    if (query.brand_id) {
-      queryBuilder.andWhere('product.brand_id = :brandId', { brandId: query.brand_id });
     }
 
     if (query.product_type) {
@@ -73,16 +69,38 @@ export class ProductsService {
       });
     }
 
-    if (query.category_id) {
+    if (query.category_name) {
       queryBuilder.innerJoin(
         'product_categories',
         'pc',
-        'pc.product_id = product.id AND pc.category_id = :categoryId',
-        { categoryId: query.category_id },
+        'pc.product_id = product.id',
       );
+      queryBuilder.innerJoin('categories', 'c', 'c.id = pc.category_id');
+      queryBuilder.andWhere('c.name ILIKE :categoryName', {
+        categoryName: `%${query.category_name}%`,
+      });
     }
 
-    return queryBuilder.orderBy('product.create_at', 'DESC').getMany();
+    if (query.min_price !== undefined || query.max_price !== undefined || query.color) {
+      queryBuilder.innerJoin('product_variants', 'pv', 'pv.product_id = product.id');
+      if (query.min_price !== undefined) {
+        queryBuilder.andWhere('pv.price >= :minPrice', { minPrice: query.min_price });
+      }
+      if (query.max_price !== undefined) {
+        queryBuilder.andWhere('pv.price <= :maxPrice', { maxPrice: query.max_price });
+      }
+      if (query.color) {
+        queryBuilder.andWhere('pv.color ILIKE :color', { color: `%${query.color}%` });
+      }
+    }
+    const products = await queryBuilder.orderBy('product.create_at', 'DESC').getMany();
+    if (!products.length) {
+      throw new NotFoundException('Khong co san pham');
+    }
+    const detailedProducts = await Promise.all(
+      products.map((product) => this.findOneDetail(product.id)),
+    );
+    return detailedProducts.map(({ variants, ...rest }) => rest);
   }
 
   async findOne(id: string) {
@@ -271,12 +289,15 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    const result = await this.productsRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Product with id ${id} not found for delete`);
+    const product = await this.productsRepository.findOneBy({ id });
+    if (!product) {
+      throw new NotFoundException(`Khong tim thay id ${id}`);
     }
+
+    await this.productsRepository.update(id, { status: 'Inactive' });
+
     return {
-      message: `Deleted product with id: ${id}`,
+      message: `Da xoa product ${id} thanh cong`,
       statusCode: 200,
     };
   }
