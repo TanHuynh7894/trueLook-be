@@ -63,12 +63,18 @@ export class BrandsService {
   }
 
   async remove(id: string) {
-    const result = await this.brandsRepository.delete(id);
+    // Sử dụng update để đổi status thành 'inactive'
+    const result = await this.brandsRepository.update(id, { 
+      status: 'inactive' 
+    });
+
+    // Kiểm tra xem có dòng nào được cập nhật không
     if (result.affected === 0) {
-      throw new NotFoundException(`Khong tim thay brand co id: ${id} de xoa`);
+      throw new NotFoundException(`Không tìm thấy brand có id: ${id} để cập nhật trạng thái`);
     }
+
     return {
-      message: `Da xoa thanh cong brand co id: ${id}`,
+      message: `Đã chuyển trạng thái brand có id: ${id} sang inactive thành công`,
       statusCode: 200,
     };
   }
