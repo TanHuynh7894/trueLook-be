@@ -6,12 +6,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { UserRolesService } from '../user_roles/user_roles.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { randomBytes } from 'crypto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import * as nodemailer from 'nodemailer';
 
 interface GoogleProfilePayload {
   email?: string;
@@ -20,12 +20,24 @@ interface GoogleProfilePayload {
 
 @Injectable()
 export class AuthService {
+  private transporter: nodemailer.Transporter;
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private readonly mailerService: MailerService,
     private userRolesService: UserRolesService,
-  ) {}
+  ) {
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+  }
+
+
 
   async signIn(username: string, pass: string) {
     const user = await this.usersService.findOneByUsername(username);
@@ -129,12 +141,12 @@ export class AuthService {
     await this.usersService.saveResetOtp(user.id, otp, expiresAt);
 
     console.log(`[TEST] Ma OTP cua user ${email} la: ${otp}`);
-    await this.mailerService.sendMail({
+    await this.transporter.sendMail({
+      from: '"True Look Support" <no-reply@truelook.com>', // Bắt buộc phải có thêm dòng này để Gmail biết ai gửi
       to: email,
       subject: 'Ma OTP dat lai mat khau - True Look',
       html: `<b>Ma OTP cua ban la: ${otp}</b>`,
     });
-    return { message: 'Ma xac nhan 6 so da duoc gui den email cua ban!' };
   }
 
   async resetPassword(email: string, otp: string, newPass: string) {

@@ -29,7 +29,6 @@ import { FrameSpecsModule } from './modules/frame-specs/frame-specs.module';
 import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module';
 import { ContactLensSpecsModule } from './modules/contact-lens-specs/contact-lens-specs.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -50,24 +49,24 @@ import { MailerModule } from '@nestjs-modules/mailer';
       }),
       inject: [ConfigService],
     }),
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASS'),
-          },
-        },
-        defaults: {
-          from: '"True Look Support" <no-reply@truelook.com>',
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    // MailerModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     transport: {
+    //       host: 'smtp.gmail.com',
+    //       port: 587,
+    //       secure: false,
+    //       auth: {
+    //         user: configService.get<string>('MAIL_USER'),
+    //         pass: configService.get<string>('MAIL_PASS'),
+    //       },
+    //     },
+    //     defaults: {
+    //       from: '"True Look Support" <no-reply@truelook.com>',
+    //     },
+    //   }),
+    //   inject: [ConfigService],
+    // }),
     UsersModule,
     RolesModule,
     BrandsModule,
