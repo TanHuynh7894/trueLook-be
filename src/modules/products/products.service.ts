@@ -12,7 +12,7 @@ import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
 import { Category } from '../categories/entities/category.entity';
-import { ProductSearchQueryDto } from './dto/product-search-query.dto';
+import { Feature } from '../feartures/entities/fearture.entity';
 
 @Injectable()
 export class ProductsService {
@@ -35,6 +35,8 @@ export class ProductsService {
     private rxLensSpecsRepository: Repository<RxLensSpec>,
     @InjectRepository(ContactLensSpec)
     private contactLensSpecsRepository: Repository<ContactLensSpec>,
+    @InjectRepository(Feature)
+    private featuresRepository: Repository<Feature>,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -52,55 +54,26 @@ export class ProductsService {
     return await this.productsRepository.save(newProduct);
   }
 
-  async findAll(query: ProductSearchQueryDto) {
-    const queryBuilder = this.productsRepository
+  async findAll() {
+    const products = await this.productsRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.brand', 'brand');
-
-    if (query.search) {
-      queryBuilder.andWhere('product.name ILIKE :search', {
-        search: `%${query.search}%`,
-      });
-    }
-
-    if (query.product_type) {
-      queryBuilder.andWhere('LOWER(product.product_type) = LOWER(:productType)', {
-        productType: query.product_type,
-      });
-    }
-
-    if (query.category_name) {
-      queryBuilder.innerJoin(
-        'product_categories',
-        'pc',
-        'pc.product_id = product.id',
-      );
-      queryBuilder.innerJoin('categories', 'c', 'c.id = pc.category_id');
-      queryBuilder.andWhere('c.name ILIKE :categoryName', {
-        categoryName: `%${query.category_name}%`,
-      });
-    }
-
-    if (query.min_price !== undefined || query.max_price !== undefined || query.color) {
-      queryBuilder.innerJoin('product_variants', 'pv', 'pv.product_id = product.id');
-      if (query.min_price !== undefined) {
-        queryBuilder.andWhere('pv.price >= :minPrice', { minPrice: query.min_price });
-      }
-      if (query.max_price !== undefined) {
-        queryBuilder.andWhere('pv.price <= :maxPrice', { maxPrice: query.max_price });
-      }
-      if (query.color) {
-        queryBuilder.andWhere('pv.color ILIKE :color', { color: `%${query.color}%` });
-      }
-    }
-    const products = await queryBuilder.orderBy('product.create_at', 'DESC').getMany();
+      .innerJoinAndSelect('product.brand', 'brand', 'LOWER(brand.status) = :active', {
+        active: 'active',
+      })
+      .where('LOWER(product.status) = :active', { active: 'active' })
+      .orderBy('product.create_at', 'DESC')
+      .getMany();
     if (!products.length) {
       throw new NotFoundException('Khong co san pham');
     }
-    const detailedProducts = await Promise.all(
-      products.map((product) => this.findOneDetail(product.id)),
-    );
-    return detailedProducts.map(({ variants, ...rest }) => rest);
+    const detailedProducts = await Promise.all(products.map((product) => this.findOneDetail(product.id)));
+    const cleanProducts = detailedProducts.map((product) => this.mapProductLikeListResponse(product));
+
+    if (!cleanProducts.length) {
+      throw new NotFoundException('Khong co san pham');
+    }
+
+    return cleanProducts;
   }
 
   async findOne(id: string) {
@@ -143,6 +116,19 @@ export class ProductsService {
         }),
       ]);
 
+    const rxLensSpecIds = rxLensSpecs.map((spec) => spec.id);
+    const features =
+      rxLensSpecIds.length > 0
+        ? await this.featuresRepository.find({
+            where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
+          })
+        : [];
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
+      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+      acc[item.rx_lens_id].push(item);
+      return acc;
+    }, {});
+
     const variantIds = variants.map((variant) => variant.id);
     const images = variantIds.length
       ? await this.imagesRepository.find({
@@ -155,14 +141,43 @@ export class ProductsService {
       images: images.filter((image) => image.variant_id === variant.id),
     }));
 
-    return {
+    const detail = {
       ...product,
       categories: categories.map((item) => item.category),
       variants: variantsWithImages,
       specs: {
         frame_specs: frameSpecs,
-        rx_lens_specs: rxLensSpecs,
+        rx_lens_specs: rxLensSpecs.map((spec) => ({
+          ...spec,
+          features: featuresByRxLens[spec.id] || [],
+        })),
         contact_lens_specs: contactLensSpecs,
+      },
+    };
+
+    return this.mapProductLikeListResponse(detail);
+  }
+
+  private isActive(status?: string) {
+    return (status || '').toLowerCase() === 'active';
+  }
+
+  private mapProductLikeListResponse(product: any) {
+    const { variants, ...rest } = product;
+    return {
+      ...rest,
+      categories: (rest.categories || []).filter((category) => this.isActive(category?.status)),
+      specs: {
+        frame_specs: (rest.specs?.frame_specs || []).filter((spec) => this.isActive(spec?.status)),
+        rx_lens_specs: (rest.specs?.rx_lens_specs || [])
+          .filter((spec) => this.isActive(spec?.status))
+          .map((spec) => ({
+            ...spec,
+            features: (spec.features || []).filter((feature) => this.isActive(feature?.status)),
+          })),
+        contact_lens_specs: (rest.specs?.contact_lens_specs || []).filter((spec) =>
+          this.isActive(spec?.status),
+        ),
       },
     };
   }

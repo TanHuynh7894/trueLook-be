@@ -2,13 +2,13 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class ProductSearchQueryDto {
-  @ApiPropertyOptional({ example: 'ray' })
+export class ProductVariantSearchQueryDto {
+  @ApiPropertyOptional({ example: 'oakley' })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ example: 'Kính mát thời trang' })
+  @ApiPropertyOptional({ example: 'Kinh mat' })
   @IsOptional()
   @IsString()
   category_name?: string;

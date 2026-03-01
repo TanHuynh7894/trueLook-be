@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -6,7 +6,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { ProductSearchQueryDto } from './dto/product-search-query.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -23,13 +22,13 @@ export class ProductsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Tim kiem, loc san pham theo category_name, product_type, min_price, max_price, color' })
-  findAll(@Query() query: ProductSearchQueryDto) {
-    return this.productsService.findAll(query);
+  @ApiOperation({ summary: 'Xem tat ca san pham' })
+  findAll() {
+    return this.productsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Xem chi tiet 1 san pham (variants, images, specs)' })
+  @ApiOperation({ summary: 'Xem chi tiet 1 san pham theo id ' })
   findOne(@Param('id') id: string) {
     return this.productsService.findOneDetail(id);
   }
