@@ -11,6 +11,7 @@ import { Brand } from '../brands/entities/brand.entity';
 import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
+import { Feature } from '../feartures/entities/fearture.entity';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spe
       FrameSpec,
       RxLensSpec,
       ContactLensSpec,
+      Feature,
     ]),
   ],
   controllers: [ProductVariantsController],

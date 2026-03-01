@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ProductVariantsService } from './product_variants.service';
 import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
@@ -6,6 +6,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { ProductVariantSearchQueryDto } from './dto/product-variant-search-query.dto';
 
 @ApiTags('ProductVariants')
 @Controller('product-variants')
@@ -22,9 +23,12 @@ export class ProductVariantsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Xem tat ca cac product-variant' })
-  findAll() {
-    return this.productVariantsService.findAll();
+  @ApiOperation({
+    summary:
+      'Xem tat ca cac product-variant (search, category_name, product_type, min_price, max_price, color)',
+  })
+  findAll(@Query() query: ProductVariantSearchQueryDto) {
+    return this.productVariantsService.findAll(query);
   }
 
   @Get(':id')

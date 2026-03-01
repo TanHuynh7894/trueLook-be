@@ -2,7 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductVariant } from './entities/product_variant.entity';
 import { Product } from '../products/entities/product.entity';
 import { Image } from '../images/entities/image.entity';
@@ -10,6 +10,9 @@ import { ProductCategory } from '../product_categories/entities/product_category
 import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
+import { ProductVariantSearchQueryDto } from './dto/product-variant-search-query.dto';
+import { Category } from '../categories/entities/category.entity';
+import { Feature } from '../feartures/entities/fearture.entity';
 
 @Injectable()
 export class ProductVariantsService {
@@ -28,6 +31,8 @@ export class ProductVariantsService {
     private rxLensSpecsRepository: Repository<RxLensSpec>,
     @InjectRepository(ContactLensSpec)
     private contactLensSpecsRepository: Repository<ContactLensSpec>,
+    @InjectRepository(Feature)
+    private featuresRepository: Repository<Feature>,
   ) {}
 
   async create(createProductVariantDto: CreateProductVariantDto) {
@@ -45,8 +50,13 @@ export class ProductVariantsService {
     return await this.productVariantsRepository.save(newProductVariant);
   }
 
-  async findAll() {
-    const variants = await this.productVariantsRepository.find();
+  async findAll(query: ProductVariantSearchQueryDto) {
+    const filteredVariantIds = await this.filterVariantIds(query);
+    if (!filteredVariantIds.length) return [];
+
+    const variants = await this.productVariantsRepository.find({
+      where: { id: In(filteredVariantIds) },
+    });
     if (!variants.length) return [];
 
     const variantIds = variants.map((variant) => variant.id);
@@ -76,6 +86,19 @@ export class ProductVariantsService {
         }),
       ]);
 
+    const rxLensSpecIds = rxLensSpecs.map((spec) => spec.id);
+    const features =
+      rxLensSpecIds.length > 0
+        ? await this.featuresRepository.find({
+            where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
+          })
+        : [];
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
+      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+      acc[item.rx_lens_id].push(item);
+      return acc;
+    }, {});
+
     const productMap = new Map(products.map((product) => [product.id, product]));
     const categoriesByProduct = productCategories.reduce<Record<string, any[]>>((acc, item) => {
       if (!acc[item.product_id]) acc[item.product_id] = [];
@@ -94,7 +117,12 @@ export class ProductVariantsService {
               categories: categoriesByProduct[variant.product_id] || [],
               specs: {
                 frame_specs: frameSpecs.filter((spec) => spec.product_id === variant.product_id),
-                rx_lens_specs: rxLensSpecs.filter((spec) => spec.product_id === variant.product_id),
+                rx_lens_specs: rxLensSpecs
+                  .filter((spec) => spec.product_id === variant.product_id)
+                  .map((spec) => ({
+                    ...spec,
+                    features: featuresByRxLens[spec.id] || [],
+                  })),
                 contact_lens_specs: contactLensSpecs.filter(
                   (spec) => spec.product_id === variant.product_id,
                 ),
@@ -136,6 +164,19 @@ export class ProductVariantsService {
         }),
       ]);
 
+    const rxLensSpecIds = rxLensSpecs.map((spec) => spec.id);
+    const features =
+      rxLensSpecIds.length > 0
+        ? await this.featuresRepository.find({
+            where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
+          })
+        : [];
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
+      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+      acc[item.rx_lens_id].push(item);
+      return acc;
+    }, {});
+
     return {
       ...productVariant,
       images,
@@ -147,12 +188,63 @@ export class ProductVariantsService {
               .filter((category) => !!category),
             specs: {
               frame_specs: frameSpecs,
-              rx_lens_specs: rxLensSpecs,
+              rx_lens_specs: rxLensSpecs.map((spec) => ({
+                ...spec,
+                features: featuresByRxLens[spec.id] || [],
+              })),
               contact_lens_specs: contactLensSpecs,
             },
           }
         : null,
     };
+  }
+
+  private async filterVariantIds(query: ProductVariantSearchQueryDto): Promise<string[]> {
+    const qb = this.productVariantsRepository
+      .createQueryBuilder('variant')
+      .leftJoin('variant.product', 'product')
+      .leftJoin(ProductCategory, 'pc', 'pc.product_id = product.id')
+      .leftJoin(Category, 'category', 'category.id = pc.category_id')
+      .select('variant.id', 'id')
+      .distinct(true);
+
+    if (query.search) {
+      qb.andWhere(
+        '(LOWER(product.name) LIKE :search OR LOWER(variant.name) LIKE :search OR LOWER(variant.code) LIKE :search)',
+        {
+          search: `%${query.search.toLowerCase()}%`,
+        },
+      );
+    }
+
+    if (query.category_name) {
+      qb.andWhere('LOWER(category.name) LIKE :categoryName', {
+        categoryName: `%${query.category_name.toLowerCase()}%`,
+      });
+    }
+
+    if (query.product_type) {
+      qb.andWhere('LOWER(product.product_type) = :productType', {
+        productType: query.product_type.toLowerCase(),
+      });
+    }
+
+    if (query.min_price !== undefined) {
+      qb.andWhere('variant.price >= :minPrice', { minPrice: query.min_price });
+    }
+
+    if (query.max_price !== undefined) {
+      qb.andWhere('variant.price <= :maxPrice', { maxPrice: query.max_price });
+    }
+
+    if (query.color) {
+      qb.andWhere('LOWER(variant.color) LIKE :color', {
+        color: `%${query.color.toLowerCase()}%`,
+      });
+    }
+
+    const rawRows = await qb.getRawMany<{ id: string }>();
+    return rawRows.map((row) => row.id);
   }
 
   async update(id: string, updateProductVariantDto: UpdateProductVariantDto) {
