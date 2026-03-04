@@ -19,14 +19,22 @@ export class CartItemsService {
   ) {}
 
   async create(createCartItemDto: CreateCartItemDto) {
-    const cart = await this.cartsRepository.findOneBy({ id: createCartItemDto.cart_id });
+    const cart = await this.cartsRepository.findOneBy({
+      id: createCartItemDto.cart_id,
+    });
     if (!cart) {
-      throw new NotFoundException(`Cart with id ${createCartItemDto.cart_id} not found`);
+      throw new NotFoundException(
+        `Cart with id ${createCartItemDto.cart_id} not found`,
+      );
     }
 
-    const variant = await this.productVariantsRepository.findOneBy({ id: createCartItemDto.variant_id });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: createCartItemDto.variant_id,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${createCartItemDto.variant_id} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${createCartItemDto.variant_id} not found`,
+      );
     }
 
     const newCartItem = this.cartItemsRepository.create(createCartItemDto);
@@ -49,16 +57,24 @@ export class CartItemsService {
     await this.findOne(id);
 
     if (updateCartItemDto.cart_id) {
-      const cart = await this.cartsRepository.findOneBy({ id: updateCartItemDto.cart_id });
+      const cart = await this.cartsRepository.findOneBy({
+        id: updateCartItemDto.cart_id,
+      });
       if (!cart) {
-        throw new NotFoundException(`Cart with id ${updateCartItemDto.cart_id} not found`);
+        throw new NotFoundException(
+          `Cart with id ${updateCartItemDto.cart_id} not found`,
+        );
       }
     }
 
     if (updateCartItemDto.variant_id) {
-      const variant = await this.productVariantsRepository.findOneBy({ id: updateCartItemDto.variant_id });
+      const variant = await this.productVariantsRepository.findOneBy({
+        id: updateCartItemDto.variant_id,
+      });
       if (!variant) {
-        throw new NotFoundException(`Product variant with id ${updateCartItemDto.variant_id} not found`);
+        throw new NotFoundException(
+          `Product variant with id ${updateCartItemDto.variant_id} not found`,
+        );
       }
     }
 
@@ -69,7 +85,9 @@ export class CartItemsService {
   async remove(id: string) {
     const result = await this.cartItemsRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Cart item with id ${id} not found for delete`);
+      throw new NotFoundException(
+        `Cart item with id ${id} not found for delete`,
+      );
     }
     return {
       message: `Deleted cart item with id: ${id}`,

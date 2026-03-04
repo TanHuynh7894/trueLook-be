@@ -13,7 +13,9 @@ export class ShippingServicesService {
   ) {}
 
   async create(createShippingServiceDto: CreateShippingServiceDto) {
-    const newShippingService = this.shippingServicesRepository.create(createShippingServiceDto);
+    const newShippingService = this.shippingServicesRepository.create(
+      createShippingServiceDto,
+    );
     return await this.shippingServicesRepository.save(newShippingService);
   }
 
@@ -22,7 +24,9 @@ export class ShippingServicesService {
   }
 
   async findOne(id: string) {
-    const shippingService = await this.shippingServicesRepository.findOneBy({ id });
+    const shippingService = await this.shippingServicesRepository.findOneBy({
+      id,
+    });
     if (!shippingService) {
       throw new NotFoundException(`Shipping service with id ${id} not found`);
     }
@@ -37,7 +41,9 @@ export class ShippingServicesService {
   async remove(id: string) {
     const result = await this.shippingServicesRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Shipping service with id ${id} not found for delete`);
+      throw new NotFoundException(
+        `Shipping service with id ${id} not found for delete`,
+      );
     }
     return {
       message: `Deleted shipping service with id: ${id}`,

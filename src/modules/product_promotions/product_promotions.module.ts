@@ -7,7 +7,9 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
 import { Promotion } from '../promotions/entities/promotion.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProductPromotion, ProductVariant, Promotion])],
+  imports: [
+    TypeOrmModule.forFeature([ProductPromotion, ProductVariant, Promotion]),
+  ],
   controllers: [ProductPromotionsController],
   providers: [ProductPromotionsService],
 })

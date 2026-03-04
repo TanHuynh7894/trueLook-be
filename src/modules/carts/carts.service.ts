@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -16,14 +20,22 @@ export class CartsService {
   ) {}
 
   async create(createCartDto: CreateCartDto) {
-    const user = await this.usersRepository.findOneBy({ id: createCartDto.user_id });
+    const user = await this.usersRepository.findOneBy({
+      id: createCartDto.user_id,
+    });
     if (!user) {
-      throw new NotFoundException(`User with id ${createCartDto.user_id} not found`);
+      throw new NotFoundException(
+        `User with id ${createCartDto.user_id} not found`,
+      );
     }
 
-    const existingCart = await this.cartsRepository.findOneBy({ user_id: createCartDto.user_id });
+    const existingCart = await this.cartsRepository.findOneBy({
+      user_id: createCartDto.user_id,
+    });
     if (existingCart) {
-      throw new ConflictException(`Cart for user_id ${createCartDto.user_id} already exists`);
+      throw new ConflictException(
+        `Cart for user_id ${createCartDto.user_id} already exists`,
+      );
     }
 
     const newCart = this.cartsRepository.create(createCartDto);
@@ -46,14 +58,22 @@ export class CartsService {
     const cart = await this.findOne(id);
 
     if (updateCartDto.user_id && updateCartDto.user_id !== cart.user_id) {
-      const user = await this.usersRepository.findOneBy({ id: updateCartDto.user_id });
+      const user = await this.usersRepository.findOneBy({
+        id: updateCartDto.user_id,
+      });
       if (!user) {
-        throw new NotFoundException(`User with id ${updateCartDto.user_id} not found`);
+        throw new NotFoundException(
+          `User with id ${updateCartDto.user_id} not found`,
+        );
       }
 
-      const existingCart = await this.cartsRepository.findOneBy({ user_id: updateCartDto.user_id });
+      const existingCart = await this.cartsRepository.findOneBy({
+        user_id: updateCartDto.user_id,
+      });
       if (existingCart && existingCart.id !== id) {
-        throw new ConflictException(`Cart for user_id ${updateCartDto.user_id} already exists`);
+        throw new ConflictException(
+          `Cart for user_id ${updateCartDto.user_id} already exists`,
+        );
       }
     }
 

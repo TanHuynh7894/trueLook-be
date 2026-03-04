@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
@@ -36,23 +40,38 @@ export class ProductVariantsService {
   ) {}
 
   async create(createProductVariantDto: CreateProductVariantDto) {
-    const product = await this.productsRepository.findOneBy({ id: createProductVariantDto.product_id });
+    const product = await this.productsRepository.findOneBy({
+      id: createProductVariantDto.product_id,
+    });
     if (!product) {
-      throw new NotFoundException(`Product with id ${createProductVariantDto.product_id} not found`);
+      throw new NotFoundException(
+        `Product with id ${createProductVariantDto.product_id} not found`,
+      );
     }
 
-    const existingCode = await this.productVariantsRepository.findOneBy({ code: createProductVariantDto.code });
+    const existingCode = await this.productVariantsRepository.findOneBy({
+      code: createProductVariantDto.code,
+    });
     if (existingCode) {
-      throw new ConflictException(`Product variant code ${createProductVariantDto.code} already exists`);
+      throw new ConflictException(
+        `Product variant code ${createProductVariantDto.code} already exists`,
+      );
     }
 
-    const newProductVariant = this.productVariantsRepository.create(createProductVariantDto);
+    const newProductVariant = this.productVariantsRepository.create(
+      createProductVariantDto,
+    );
     return await this.productVariantsRepository.save(newProductVariant);
   }
 
   async findAll(query: ProductVariantSearchQueryDto) {
     const filteredVariantIds = await this.filterVariantIds(query);
-    if (!filteredVariantIds.length) return [];
+    if (!filteredVariantIds.length) {
+      if (query.search?.trim()) {
+        throw new NotFoundException('Khong co san pham nay');
+      }
+      return [];
+    }
 
     const variants = await this.productVariantsRepository.find({
       where: { id: In(filteredVariantIds) },
@@ -60,31 +79,39 @@ export class ProductVariantsService {
     if (!variants.length) return [];
 
     const variantIds = variants.map((variant) => variant.id);
-    const productIds = [...new Set(variants.map((variant) => variant.product_id))];
-    const [products, productCategories, frameSpecs, rxLensSpecs, contactLensSpecs, images] =
-      await Promise.all([
-        this.productsRepository
-          .createQueryBuilder('product')
-          .leftJoinAndSelect('product.brand', 'brand')
-          .where('product.id IN (:...productIds)', { productIds })
-          .getMany(),
-        this.productCategoriesRepository.find({
-          where: productIds.map((productId) => ({ product_id: productId })),
-          relations: ['category'],
-        }),
-        this.frameSpecsRepository.find({
-          where: productIds.map((productId) => ({ product_id: productId })),
-        }),
-        this.rxLensSpecsRepository.find({
-          where: productIds.map((productId) => ({ product_id: productId })),
-        }),
-        this.contactLensSpecsRepository.find({
-          where: productIds.map((productId) => ({ product_id: productId })),
-        }),
-        this.imagesRepository.find({
-          where: variantIds.map((variantId) => ({ variant_id: variantId })),
-        }),
-      ]);
+    const productIds = [
+      ...new Set(variants.map((variant) => variant.product_id)),
+    ];
+    const [
+      products,
+      productCategories,
+      frameSpecs,
+      rxLensSpecs,
+      contactLensSpecs,
+      images,
+    ] = await Promise.all([
+      this.productsRepository
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.brand', 'brand')
+        .where('product.id IN (:...productIds)', { productIds })
+        .getMany(),
+      this.productCategoriesRepository.find({
+        where: productIds.map((productId) => ({ product_id: productId })),
+        relations: ['category'],
+      }),
+      this.frameSpecsRepository.find({
+        where: productIds.map((productId) => ({ product_id: productId })),
+      }),
+      this.rxLensSpecsRepository.find({
+        where: productIds.map((productId) => ({ product_id: productId })),
+      }),
+      this.contactLensSpecsRepository.find({
+        where: productIds.map((productId) => ({ product_id: productId })),
+      }),
+      this.imagesRepository.find({
+        where: variantIds.map((variantId) => ({ variant_id: variantId })),
+      }),
+    ]);
 
     const rxLensSpecIds = rxLensSpecs.map((spec) => spec.id);
     const features =
@@ -93,18 +120,26 @@ export class ProductVariantsService {
             where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
           })
         : [];
-    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
-      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
-      acc[item.rx_lens_id].push(item);
-      return acc;
-    }, {});
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>(
+      (acc, item) => {
+        if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+        acc[item.rx_lens_id].push(item);
+        return acc;
+      },
+      {},
+    );
 
-    const productMap = new Map(products.map((product) => [product.id, product]));
-    const categoriesByProduct = productCategories.reduce<Record<string, any[]>>((acc, item) => {
-      if (!acc[item.product_id]) acc[item.product_id] = [];
-      if (item.category) acc[item.product_id].push(item.category);
-      return acc;
-    }, {});
+    const productMap = new Map(
+      products.map((product) => [product.id, product]),
+    );
+    const categoriesByProduct = productCategories.reduce<Record<string, any[]>>(
+      (acc, item) => {
+        if (!acc[item.product_id]) acc[item.product_id] = [];
+        if (item.category) acc[item.product_id].push(item.category);
+        return acc;
+      },
+      {},
+    );
 
     return variants.map((variant) => {
       const product = productMap.get(variant.product_id);
@@ -116,7 +151,9 @@ export class ProductVariantsService {
               ...product,
               categories: categoriesByProduct[variant.product_id] || [],
               specs: {
-                frame_specs: frameSpecs.filter((spec) => spec.product_id === variant.product_id),
+                frame_specs: frameSpecs.filter(
+                  (spec) => spec.product_id === variant.product_id,
+                ),
                 rx_lens_specs: rxLensSpecs
                   .filter((spec) => spec.product_id === variant.product_id)
                   .map((spec) => ({
@@ -134,35 +171,43 @@ export class ProductVariantsService {
   }
 
   async findOne(id: string) {
-    const productVariant = await this.productVariantsRepository.findOneBy({ id });
+    const productVariant = await this.productVariantsRepository.findOneBy({
+      id,
+    });
     if (!productVariant) {
       throw new NotFoundException(`Product variant with id ${id} not found`);
     }
 
-    const [product, productCategories, frameSpecs, rxLensSpecs, contactLensSpecs, images] =
-      await Promise.all([
-        this.productsRepository
-          .createQueryBuilder('product')
-          .leftJoinAndSelect('product.brand', 'brand')
-          .where('product.id = :id', { id: productVariant.product_id })
-          .getOne(),
-        this.productCategoriesRepository.find({
-          where: { product_id: productVariant.product_id },
-          relations: ['category'],
-        }),
-        this.frameSpecsRepository.find({
-          where: { product_id: productVariant.product_id },
-        }),
-        this.rxLensSpecsRepository.find({
-          where: { product_id: productVariant.product_id },
-        }),
-        this.contactLensSpecsRepository.find({
-          where: { product_id: productVariant.product_id },
-        }),
-        this.imagesRepository.find({
-          where: { variant_id: productVariant.id },
-        }),
-      ]);
+    const [
+      product,
+      productCategories,
+      frameSpecs,
+      rxLensSpecs,
+      contactLensSpecs,
+      images,
+    ] = await Promise.all([
+      this.productsRepository
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.brand', 'brand')
+        .where('product.id = :id', { id: productVariant.product_id })
+        .getOne(),
+      this.productCategoriesRepository.find({
+        where: { product_id: productVariant.product_id },
+        relations: ['category'],
+      }),
+      this.frameSpecsRepository.find({
+        where: { product_id: productVariant.product_id },
+      }),
+      this.rxLensSpecsRepository.find({
+        where: { product_id: productVariant.product_id },
+      }),
+      this.contactLensSpecsRepository.find({
+        where: { product_id: productVariant.product_id },
+      }),
+      this.imagesRepository.find({
+        where: { variant_id: productVariant.id },
+      }),
+    ]);
 
     const rxLensSpecIds = rxLensSpecs.map((spec) => spec.id);
     const features =
@@ -171,11 +216,14 @@ export class ProductVariantsService {
             where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
           })
         : [];
-    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
-      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
-      acc[item.rx_lens_id].push(item);
-      return acc;
-    }, {});
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>(
+      (acc, item) => {
+        if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+        acc[item.rx_lens_id].push(item);
+        return acc;
+      },
+      {},
+    );
 
     return {
       ...productVariant,
@@ -199,10 +247,13 @@ export class ProductVariantsService {
     };
   }
 
-  private async filterVariantIds(query: ProductVariantSearchQueryDto): Promise<string[]> {
+  private async filterVariantIds(
+    query: ProductVariantSearchQueryDto,
+  ): Promise<string[]> {
     const qb = this.productVariantsRepository
       .createQueryBuilder('variant')
       .leftJoin('variant.product', 'product')
+      .leftJoin('product.brand', 'brand')
       .leftJoin(ProductCategory, 'pc', 'pc.product_id = product.id')
       .leftJoin(Category, 'category', 'category.id = pc.category_id')
       .select('variant.id', 'id')
@@ -226,6 +277,12 @@ export class ProductVariantsService {
     if (query.product_type) {
       qb.andWhere('LOWER(product.product_type) = :productType', {
         productType: query.product_type.toLowerCase(),
+      });
+    }
+
+    if (query.brand_name) {
+      qb.andWhere('LOWER(brand.name) LIKE :brandName', {
+        brandName: `%${query.brand_name.toLowerCase()}%`,
       });
     }
 
@@ -269,9 +326,13 @@ export class ProductVariantsService {
   }
 
   async addImage(variantId: string, path: string) {
-    const variant = await this.productVariantsRepository.findOneBy({ id: variantId });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: variantId,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${variantId} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${variantId} not found`,
+      );
     }
 
     const image = this.imagesRepository.create({

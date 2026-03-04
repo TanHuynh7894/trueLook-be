@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ProductPromotionsService } from './product_promotions.service';
 import { CreateProductPromotionDto } from './dto/create-product_promotion.dto';
 import { UpdateProductPromotionDto } from './dto/update-product_promotion.dto';
@@ -6,7 +14,9 @@ import { ApiExcludeController } from '@nestjs/swagger';
 @ApiExcludeController()
 @Controller('product-promotions')
 export class ProductPromotionsController {
-  constructor(private readonly productPromotionsService: ProductPromotionsService) {}
+  constructor(
+    private readonly productPromotionsService: ProductPromotionsService,
+  ) {}
 
   @Post()
   create(@Body() createProductPromotionDto: CreateProductPromotionDto) {
@@ -19,7 +29,10 @@ export class ProductPromotionsController {
   }
 
   @Get(':variantId/:promotionId')
-  findOne(@Param('variantId') variantId: string, @Param('promotionId') promotionId: string) {
+  findOne(
+    @Param('variantId') variantId: string,
+    @Param('promotionId') promotionId: string,
+  ) {
     return this.productPromotionsService.findOne(variantId, promotionId);
   }
 
@@ -29,11 +42,18 @@ export class ProductPromotionsController {
     @Param('promotionId') promotionId: string,
     @Body() updateProductPromotionDto: UpdateProductPromotionDto,
   ) {
-    return this.productPromotionsService.update(variantId, promotionId, updateProductPromotionDto);
+    return this.productPromotionsService.update(
+      variantId,
+      promotionId,
+      updateProductPromotionDto,
+    );
   }
 
   @Delete(':variantId/:promotionId')
-  remove(@Param('variantId') variantId: string, @Param('promotionId') promotionId: string) {
+  remove(
+    @Param('variantId') variantId: string,
+    @Param('promotionId') promotionId: string,
+  ) {
     return this.productPromotionsService.remove(variantId, promotionId);
   }
 }

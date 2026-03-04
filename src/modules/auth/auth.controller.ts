@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Req, UseGuards, HttpCode, HttpStatus, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginDto } from './dto/login.dto';
@@ -92,10 +101,7 @@ export class AuthController {
   @ApiBody({ type: ChangePasswordDto })
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
-  changePassword(
-    @Req() req: any,
-    @Body() dto: ChangePasswordDto,
-  ) {
+  changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
     const userId = req.user.sub;
     return this.authService.changePassword(userId, dto);
   }

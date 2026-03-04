@@ -1,10 +1,12 @@
 import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class CreateShippingDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   order_id: string;
 
   @IsNumber()
@@ -13,12 +15,15 @@ export class CreateShippingDto {
   @IsNumber()
   cod_amount: number;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   status?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   provider_id?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   service_id?: string;
 }

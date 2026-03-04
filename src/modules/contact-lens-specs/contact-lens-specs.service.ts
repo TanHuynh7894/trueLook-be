@@ -23,7 +23,8 @@ export class ContactLensSpecsService {
 
   async findOne(id: string) {
     const spec = await this.repo.findOneBy({ id });
-    if (!spec) throw new NotFoundException(`Contact Lens Spec ${id} không tồn tại`);
+    if (!spec)
+      throw new NotFoundException(`Contact Lens Spec ${id} không tồn tại`);
     return spec;
   }
 

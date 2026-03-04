@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductVariantsService } from './product_variants.service';
 import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
@@ -11,7 +21,9 @@ import { ProductVariantSearchQueryDto } from './dto/product-variant-search-query
 @ApiTags('ProductVariants')
 @Controller('product-variants')
 export class ProductVariantsController {
-  constructor(private readonly productVariantsService: ProductVariantsService) {}
+  constructor(
+    private readonly productVariantsService: ProductVariantsService,
+  ) {}
 
   @Post()
   @ApiBearerAuth('access-token')
@@ -25,7 +37,7 @@ export class ProductVariantsController {
   @Get()
   @ApiOperation({
     summary:
-      'Xem tat ca cac product-variant (search, category_name, product_type, min_price, max_price, color)',
+      'Xem tat ca cac product-variant (search, category_name, product_type, brand_name, min_price, max_price, color)',
   })
   findAll(@Query() query: ProductVariantSearchQueryDto) {
     return this.productVariantsService.findAll(query);
@@ -41,8 +53,13 @@ export class ProductVariantsController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager cap nhat gia va ton kho variant' })
-  update(@Param('id') id: string, @Body() updateProductVariantDto: UpdateProductVariantDto) {
+  @ApiOperation({
+    summary: 'System Admin hoac Manager cap nhat gia va ton kho variant',
+  })
+  update(
+    @Param('id') id: string,
+    @Body() updateProductVariantDto: UpdateProductVariantDto,
+  ) {
     return this.productVariantsService.update(id, updateProductVariantDto);
   }
 

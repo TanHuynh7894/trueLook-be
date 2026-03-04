@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { FrameSpecsService } from './frame-specs.service';
 import { CreateFrameSpecDto } from './dto/create-frame-spec.dto';
 import { UpdateFrameSpecDto } from './dto/update-frame-spec.dto';

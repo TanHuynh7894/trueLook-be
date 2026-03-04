@@ -1,33 +1,43 @@
 import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateRxLensSpecDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   product_id: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   type?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   material?: string;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   lens_width?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   min_sphere?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   max_sphere?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   min_cylinder?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   max_cylinder?: number;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   status?: string;
 }

@@ -1,8 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateStaffDto } from './dto/create-staff.dto'; 
+import { CreateStaffDto } from './dto/create-staff.dto';
 import { UserRolesService } from '../user_roles/user_roles.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -33,8 +42,8 @@ export class UsersController {
       user: {
         id: user.id,
         username: user.username,
-        role: roleName
-      }
+        role: roleName,
+      },
     };
   }
 
@@ -53,7 +62,7 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(AuthGuard('jwt'), RolesGuard) 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'Lấy danh sách tất cả Users' })
   findAll() {
@@ -61,7 +70,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard) 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'Lấy thông tin User theo ID' })
   findOne(@Param('id') id: string) {
@@ -69,7 +78,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard) 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'Cập nhật thông tin User theo ID' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -77,7 +86,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard) 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'Khóa tài khoản' })
   remove(@Param('id') id: string) {

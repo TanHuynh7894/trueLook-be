@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('shipping')
 export class Shipping {
@@ -8,16 +14,26 @@ export class Shipping {
   @Column({ length: 15 })
   order_id: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => parseFloat(value),
-  }})
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   ship_fee: number;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => parseFloat(value),
-  }})
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   cod_amount: number;
 
   @CreateDateColumn()

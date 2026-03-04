@@ -19,17 +19,26 @@ export class OrderDetailsService {
   ) {}
 
   async create(createOrderDetailDto: CreateOrderDetailDto) {
-    const order = await this.ordersRepository.findOneBy({ id: createOrderDetailDto.order_id });
+    const order = await this.ordersRepository.findOneBy({
+      id: createOrderDetailDto.order_id,
+    });
     if (!order) {
-      throw new NotFoundException(`Order with id ${createOrderDetailDto.order_id} not found`);
+      throw new NotFoundException(
+        `Order with id ${createOrderDetailDto.order_id} not found`,
+      );
     }
 
-    const variant = await this.productVariantsRepository.findOneBy({ id: createOrderDetailDto.variant_id });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: createOrderDetailDto.variant_id,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${createOrderDetailDto.variant_id} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${createOrderDetailDto.variant_id} not found`,
+      );
     }
 
-    const newOrderDetail = this.orderDetailsRepository.create(createOrderDetailDto);
+    const newOrderDetail =
+      this.orderDetailsRepository.create(createOrderDetailDto);
     return await this.orderDetailsRepository.save(newOrderDetail);
   }
 
@@ -49,16 +58,24 @@ export class OrderDetailsService {
     await this.findOne(id);
 
     if (updateOrderDetailDto.order_id) {
-      const order = await this.ordersRepository.findOneBy({ id: updateOrderDetailDto.order_id });
+      const order = await this.ordersRepository.findOneBy({
+        id: updateOrderDetailDto.order_id,
+      });
       if (!order) {
-        throw new NotFoundException(`Order with id ${updateOrderDetailDto.order_id} not found`);
+        throw new NotFoundException(
+          `Order with id ${updateOrderDetailDto.order_id} not found`,
+        );
       }
     }
 
     if (updateOrderDetailDto.variant_id) {
-      const variant = await this.productVariantsRepository.findOneBy({ id: updateOrderDetailDto.variant_id });
+      const variant = await this.productVariantsRepository.findOneBy({
+        id: updateOrderDetailDto.variant_id,
+      });
       if (!variant) {
-        throw new NotFoundException(`Product variant with id ${updateOrderDetailDto.variant_id} not found`);
+        throw new NotFoundException(
+          `Product variant with id ${updateOrderDetailDto.variant_id} not found`,
+        );
       }
     }
 
@@ -69,7 +86,9 @@ export class OrderDetailsService {
   async remove(id: string) {
     const result = await this.orderDetailsRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Order detail with id ${id} not found for delete`);
+      throw new NotFoundException(
+        `Order detail with id ${id} not found for delete`,
+      );
     }
     return {
       message: `Deleted order detail with id: ${id}`,

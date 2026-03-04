@@ -1,33 +1,43 @@
 import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateFrameSpecDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   product_id: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   type?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   material?: string;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   a?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   b?: number;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   dbl?: number;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   shape?: string;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   weight?: number;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   status?: string;
 }

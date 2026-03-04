@@ -1,21 +1,32 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
 
 export class CreatePaymentDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   order_id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   method: string;
 
-  @IsString() @IsOptional()
+  @IsString()
+  @IsOptional()
   status?: string;
 
   @IsNumber()
   amount: number;
 
-  @IsOptional() @IsDateString()
+  @IsOptional()
+  @IsDateString()
   payment_date?: Date;
 }

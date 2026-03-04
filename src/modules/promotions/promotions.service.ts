@@ -37,7 +37,9 @@ export class PromotionsService {
   async remove(id: string) {
     const result = await this.promotionsRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Promotion with id ${id} not found for delete`);
+      throw new NotFoundException(
+        `Promotion with id ${id} not found for delete`,
+      );
     }
     return {
       message: `Deleted promotion with id: ${id}`,

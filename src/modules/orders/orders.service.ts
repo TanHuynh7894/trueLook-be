@@ -16,9 +16,13 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const customer = await this.usersRepository.findOneBy({ id: createOrderDto.customer_id });
+    const customer = await this.usersRepository.findOneBy({
+      id: createOrderDto.customer_id,
+    });
     if (!customer) {
-      throw new NotFoundException(`User with id ${createOrderDto.customer_id} not found`);
+      throw new NotFoundException(
+        `User with id ${createOrderDto.customer_id} not found`,
+      );
     }
 
     const newOrder = this.ordersRepository.create(createOrderDto);
@@ -41,9 +45,13 @@ export class OrdersService {
     await this.findOne(id);
 
     if (updateOrderDto.customer_id) {
-      const customer = await this.usersRepository.findOneBy({ id: updateOrderDto.customer_id });
+      const customer = await this.usersRepository.findOneBy({
+        id: updateOrderDto.customer_id,
+      });
       if (!customer) {
-        throw new NotFoundException(`User with id ${updateOrderDto.customer_id} not found`);
+        throw new NotFoundException(
+          `User with id ${updateOrderDto.customer_id} not found`,
+        );
       }
     }
 

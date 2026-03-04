@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductCategoryDto } from './dto/create-product_category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product_category.dto';
@@ -19,14 +23,22 @@ export class ProductCategoriesService {
   ) {}
 
   async create(createProductCategoryDto: CreateProductCategoryDto) {
-    const product = await this.productsRepository.findOneBy({ id: createProductCategoryDto.product_id });
+    const product = await this.productsRepository.findOneBy({
+      id: createProductCategoryDto.product_id,
+    });
     if (!product) {
-      throw new NotFoundException(`Product with id ${createProductCategoryDto.product_id} not found`);
+      throw new NotFoundException(
+        `Product with id ${createProductCategoryDto.product_id} not found`,
+      );
     }
 
-    const category = await this.categoriesRepository.findOneBy({ id: createProductCategoryDto.category_id });
+    const category = await this.categoriesRepository.findOneBy({
+      id: createProductCategoryDto.category_id,
+    });
     if (!category) {
-      throw new NotFoundException(`Category with id ${createProductCategoryDto.category_id} not found`);
+      throw new NotFoundException(
+        `Category with id ${createProductCategoryDto.category_id} not found`,
+      );
     }
 
     const existing = await this.productCategoriesRepository.findOneBy({
@@ -39,7 +51,9 @@ export class ProductCategoriesService {
       );
     }
 
-    const newProductCategory = this.productCategoriesRepository.create(createProductCategoryDto);
+    const newProductCategory = this.productCategoriesRepository.create(
+      createProductCategoryDto,
+    );
     return await this.productCategoriesRepository.save(newProductCategory);
   }
 
@@ -53,7 +67,9 @@ export class ProductCategoriesService {
       category_id: categoryId,
     });
     if (!productCategory) {
-      throw new NotFoundException(`Product category (${productId}, ${categoryId}) not found`);
+      throw new NotFoundException(
+        `Product category (${productId}, ${categoryId}) not found`,
+      );
     }
     return productCategory;
   }
@@ -69,16 +85,24 @@ export class ProductCategoriesService {
     const nextCategoryId = updateProductCategoryDto.category_id ?? categoryId;
 
     if (updateProductCategoryDto.product_id) {
-      const product = await this.productsRepository.findOneBy({ id: updateProductCategoryDto.product_id });
+      const product = await this.productsRepository.findOneBy({
+        id: updateProductCategoryDto.product_id,
+      });
       if (!product) {
-        throw new NotFoundException(`Product with id ${updateProductCategoryDto.product_id} not found`);
+        throw new NotFoundException(
+          `Product with id ${updateProductCategoryDto.product_id} not found`,
+        );
       }
     }
 
     if (updateProductCategoryDto.category_id) {
-      const category = await this.categoriesRepository.findOneBy({ id: updateProductCategoryDto.category_id });
+      const category = await this.categoriesRepository.findOneBy({
+        id: updateProductCategoryDto.category_id,
+      });
       if (!category) {
-        throw new NotFoundException(`Category with id ${updateProductCategoryDto.category_id} not found`);
+        throw new NotFoundException(
+          `Category with id ${updateProductCategoryDto.category_id} not found`,
+        );
       }
     }
 
@@ -86,8 +110,13 @@ export class ProductCategoriesService {
       product_id: nextProductId,
       category_id: nextCategoryId,
     });
-    if (duplicate && (nextProductId !== productId || nextCategoryId !== categoryId)) {
-      throw new ConflictException(`Product category (${nextProductId}, ${nextCategoryId}) already exists`);
+    if (
+      duplicate &&
+      (nextProductId !== productId || nextCategoryId !== categoryId)
+    ) {
+      throw new ConflictException(
+        `Product category (${nextProductId}, ${nextCategoryId}) already exists`,
+      );
     }
 
     await this.productCategoriesRepository.update(
@@ -103,7 +132,9 @@ export class ProductCategoriesService {
       category_id: categoryId,
     });
     if (result.affected === 0) {
-      throw new NotFoundException(`Product category (${productId}, ${categoryId}) not found for delete`);
+      throw new NotFoundException(
+        `Product category (${productId}, ${categoryId}) not found for delete`,
+      );
     }
     return {
       message: `Deleted product category (${productId}, ${categoryId})`,

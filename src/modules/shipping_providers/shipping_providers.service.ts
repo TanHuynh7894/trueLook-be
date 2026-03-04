@@ -13,7 +13,9 @@ export class ShippingProvidersService {
   ) {}
 
   async create(createShippingProviderDto: CreateShippingProviderDto) {
-    const newShippingProvider = this.shippingProvidersRepository.create(createShippingProviderDto);
+    const newShippingProvider = this.shippingProvidersRepository.create(
+      createShippingProviderDto,
+    );
     return await this.shippingProvidersRepository.save(newShippingProvider);
   }
 
@@ -22,22 +24,32 @@ export class ShippingProvidersService {
   }
 
   async findOne(id: string) {
-    const shippingProvider = await this.shippingProvidersRepository.findOneBy({ id });
+    const shippingProvider = await this.shippingProvidersRepository.findOneBy({
+      id,
+    });
     if (!shippingProvider) {
       throw new NotFoundException(`Shipping provider with id ${id} not found`);
     }
     return shippingProvider;
   }
 
-  async update(id: string, updateShippingProviderDto: UpdateShippingProviderDto) {
-    await this.shippingProvidersRepository.update(id, updateShippingProviderDto);
+  async update(
+    id: string,
+    updateShippingProviderDto: UpdateShippingProviderDto,
+  ) {
+    await this.shippingProvidersRepository.update(
+      id,
+      updateShippingProviderDto,
+    );
     return this.findOne(id);
   }
 
   async remove(id: string) {
     const result = await this.shippingProvidersRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Shipping provider with id ${id} not found for delete`);
+      throw new NotFoundException(
+        `Shipping provider with id ${id} not found for delete`,
+      );
     }
     return {
       message: `Deleted shipping provider with id: ${id}`,

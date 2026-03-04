@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRolesService } from './user_roles.service';
 import { CreateUserRoleDto } from './dto/create-user_role.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -8,7 +16,7 @@ import { ApiBearerAuth, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('UserRoles')
 @ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('jwt'), RolesGuard) 
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles('System Admin', 'Manager')
 @Controller('user-roles')
 export class UserRolesController {

@@ -26,7 +26,11 @@ export class Order {
   @Column({ name: 'update_at', type: 'timestamp', nullable: true })
   update_at: Date;
 
-  @Column({ name: 'create_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'create_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   create_at: Date;
 
   @ManyToOne(() => User)

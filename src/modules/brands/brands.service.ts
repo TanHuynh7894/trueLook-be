@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
@@ -15,7 +19,9 @@ export class BrandsService {
   async create(createBrandDto: CreateBrandDto) {
     const existedBrand = await this.brandsRepository
       .createQueryBuilder('brand')
-      .where('LOWER(brand.name) = LOWER(:name)', { name: createBrandDto.name.trim() })
+      .where('LOWER(brand.name) = LOWER(:name)', {
+        name: createBrandDto.name.trim(),
+      })
       .getOne();
 
     if (existedBrand) {
@@ -49,7 +55,9 @@ export class BrandsService {
     if (updateBrandDto.name) {
       const existedBrand = await this.brandsRepository
         .createQueryBuilder('brand')
-        .where('LOWER(brand.name) = LOWER(:name)', { name: updateBrandDto.name.trim() })
+        .where('LOWER(brand.name) = LOWER(:name)', {
+          name: updateBrandDto.name.trim(),
+        })
         .andWhere('brand.id != :id', { id })
         .getOne();
 

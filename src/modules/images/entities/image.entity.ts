@@ -1,4 +1,11 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { ProductVariant } from '../../product_variants/entities/product_variant.entity';
 
 @Entity('images')

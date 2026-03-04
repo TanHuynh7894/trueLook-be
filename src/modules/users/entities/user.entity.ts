@@ -1,11 +1,17 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert, OneToMany, Check } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  BeforeInsert,
+  OneToMany,
+  Check,
+} from 'typeorm';
 import { UserRole } from '../../user_roles/entities/user_role.entity';
 
 @Entity('users')
 @Check(`"status" IN (0, 1)`)
 export class User {
-
-  @PrimaryColumn({ type: 'varchar', length: 15 }) 
+  @PrimaryColumn({ type: 'varchar', length: 15 })
   id: string;
 
   @Column()
@@ -14,7 +20,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ name: 'full_name' }) 
+  @Column({ name: 'full_name' })
   fullName: string;
 
   @Column({ type: 'varchar', nullable: true })

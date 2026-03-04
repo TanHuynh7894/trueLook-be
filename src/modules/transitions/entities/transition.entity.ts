@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Shipping } from '../../shipping/entities/shipping.entity'; 
+import { Shipping } from '../../shipping/entities/shipping.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 
 @Entity('transitions')

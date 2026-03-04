@@ -8,11 +8,10 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     // 1. Tách password ra khỏi phần dữ liệu còn lại
@@ -32,18 +31,35 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.usersRepository.find({ 
-      relations: ['userRoles.role'],        
-      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status']
-    });                               
+    return this.usersRepository.find({
+      relations: ['userRoles.role'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'fullName',
+        'gender',
+        'birthday',
+        'status',
+      ],
+    });
   }
 
   async findOne(id: string) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['userRoles.role'], 
-      select: ['id', 'username', 'email', 'fullName', 'password', 'gender', 'birthday', 'status']
-    });            
+      relations: ['userRoles.role'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'fullName',
+        'password',
+        'gender',
+        'birthday',
+        'status',
+      ],
+    });
     if (!user) {
       throw new NotFoundException(`Không tìm thấy user có id: ${id}`);
     }
@@ -65,7 +81,7 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     // 1. Tách password ra (nếu người dùng cố tình gửi lên) và bỏ đi, chỉ lấy phần dữ liệu an toàn (safeData)
-    const { password, ...safeData } = updateUserDto as any; 
+    const { password, ...safeData } = updateUserDto as any;
 
     // 2. Chỉ update những trường an toàn
     await this.usersRepository.update(id, safeData);
@@ -97,7 +113,9 @@ export class UsersService {
   }
 
   async updateRefreshToken(id: string, refreshToken: string | null) {
-    const hashedToken = refreshToken ? await bcrypt.hash(refreshToken, 10) : null;
+    const hashedToken = refreshToken
+      ? await bcrypt.hash(refreshToken, 10)
+      : null;
     await this.usersRepository.update(id, { refreshToken: hashedToken });
   }
 
@@ -119,14 +137,14 @@ export class UsersService {
   async saveResetOtp(userId: string, otp: string, expiresAt: Date) {
     await this.usersRepository.update(userId, {
       resetOtp: otp,
-      resetOtpExpires: expiresAt
+      resetOtpExpires: expiresAt,
     });
   }
 
   async clearResetOtp(userId: string) {
     await this.usersRepository.update(userId, {
       resetOtp: null,
-      resetOtpExpires: null
+      resetOtpExpires: null,
     });
   }
 
@@ -134,7 +152,15 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: ['userRoles', 'userRoles.role'],
-      select: ['id', 'username', 'email', 'fullName', 'gender', 'birthday', 'status'], 
+      select: [
+        'id',
+        'username',
+        'email',
+        'fullName',
+        'gender',
+        'birthday',
+        'status',
+      ],
     });
 
     if (!user) {
@@ -142,5 +168,4 @@ export class UsersService {
     }
     return user;
   }
-
 }

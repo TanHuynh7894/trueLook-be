@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductPromotionDto } from './dto/create-product_promotion.dto';
 import { UpdateProductPromotionDto } from './dto/update-product_promotion.dto';
@@ -19,14 +23,22 @@ export class ProductPromotionsService {
   ) {}
 
   async create(createProductPromotionDto: CreateProductPromotionDto) {
-    const variant = await this.productVariantsRepository.findOneBy({ id: createProductPromotionDto.variant_id });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: createProductPromotionDto.variant_id,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${createProductPromotionDto.variant_id} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${createProductPromotionDto.variant_id} not found`,
+      );
     }
 
-    const promotion = await this.promotionsRepository.findOneBy({ id: createProductPromotionDto.promotion_id });
+    const promotion = await this.promotionsRepository.findOneBy({
+      id: createProductPromotionDto.promotion_id,
+    });
     if (!promotion) {
-      throw new NotFoundException(`Promotion with id ${createProductPromotionDto.promotion_id} not found`);
+      throw new NotFoundException(
+        `Promotion with id ${createProductPromotionDto.promotion_id} not found`,
+      );
     }
 
     const existing = await this.productPromotionsRepository.findOneBy({
@@ -39,7 +51,9 @@ export class ProductPromotionsService {
       );
     }
 
-    const newProductPromotion = this.productPromotionsRepository.create(createProductPromotionDto);
+    const newProductPromotion = this.productPromotionsRepository.create(
+      createProductPromotionDto,
+    );
     return await this.productPromotionsRepository.save(newProductPromotion);
   }
 
@@ -53,7 +67,9 @@ export class ProductPromotionsService {
       promotion_id: promotionId,
     });
     if (!productPromotion) {
-      throw new NotFoundException(`Product promotion (${variantId}, ${promotionId}) not found`);
+      throw new NotFoundException(
+        `Product promotion (${variantId}, ${promotionId}) not found`,
+      );
     }
     return productPromotion;
   }
@@ -66,19 +82,28 @@ export class ProductPromotionsService {
     await this.findOne(variantId, promotionId);
 
     const nextVariantId = updateProductPromotionDto.variant_id ?? variantId;
-    const nextPromotionId = updateProductPromotionDto.promotion_id ?? promotionId;
+    const nextPromotionId =
+      updateProductPromotionDto.promotion_id ?? promotionId;
 
     if (updateProductPromotionDto.variant_id) {
-      const variant = await this.productVariantsRepository.findOneBy({ id: updateProductPromotionDto.variant_id });
+      const variant = await this.productVariantsRepository.findOneBy({
+        id: updateProductPromotionDto.variant_id,
+      });
       if (!variant) {
-        throw new NotFoundException(`Product variant with id ${updateProductPromotionDto.variant_id} not found`);
+        throw new NotFoundException(
+          `Product variant with id ${updateProductPromotionDto.variant_id} not found`,
+        );
       }
     }
 
     if (updateProductPromotionDto.promotion_id) {
-      const promotion = await this.promotionsRepository.findOneBy({ id: updateProductPromotionDto.promotion_id });
+      const promotion = await this.promotionsRepository.findOneBy({
+        id: updateProductPromotionDto.promotion_id,
+      });
       if (!promotion) {
-        throw new NotFoundException(`Promotion with id ${updateProductPromotionDto.promotion_id} not found`);
+        throw new NotFoundException(
+          `Promotion with id ${updateProductPromotionDto.promotion_id} not found`,
+        );
       }
     }
 
@@ -86,8 +111,13 @@ export class ProductPromotionsService {
       variant_id: nextVariantId,
       promotion_id: nextPromotionId,
     });
-    if (duplicate && (nextVariantId !== variantId || nextPromotionId !== promotionId)) {
-      throw new ConflictException(`Product promotion (${nextVariantId}, ${nextPromotionId}) already exists`);
+    if (
+      duplicate &&
+      (nextVariantId !== variantId || nextPromotionId !== promotionId)
+    ) {
+      throw new ConflictException(
+        `Product promotion (${nextVariantId}, ${nextPromotionId}) already exists`,
+      );
     }
 
     await this.productPromotionsRepository.update(
@@ -103,7 +133,9 @@ export class ProductPromotionsService {
       promotion_id: promotionId,
     });
     if (result.affected === 0) {
-      throw new NotFoundException(`Product promotion (${variantId}, ${promotionId}) not found for delete`);
+      throw new NotFoundException(
+        `Product promotion (${variantId}, ${promotionId}) not found for delete`,
+      );
     }
     return {
       message: `Deleted product promotion (${variantId}, ${promotionId})`,

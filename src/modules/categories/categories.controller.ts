@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -36,7 +45,10 @@ export class CategoriesController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'System Admin hoac Manager cap nhat danh muc' })
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
@@ -44,7 +56,9 @@ export class CategoriesController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager chuyen danh muc sang Inactive' })
+  @ApiOperation({
+    summary: 'System Admin hoac Manager chuyen danh muc sang Inactive',
+  })
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }

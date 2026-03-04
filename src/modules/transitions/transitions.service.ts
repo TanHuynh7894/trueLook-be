@@ -29,7 +29,8 @@ export class TransitionsService {
       where: { id },
       relations: ['shipping', 'payment'],
     });
-    if (!transition) throw new NotFoundException(`Không tìm thấy hành trình ${id}`);
+    if (!transition)
+      throw new NotFoundException(`Không tìm thấy hành trình ${id}`);
     return transition;
   }
 

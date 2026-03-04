@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -40,14 +44,22 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const brand = await this.brandsRepository.findOneBy({ id: createProductDto.brand_id });
+    const brand = await this.brandsRepository.findOneBy({
+      id: createProductDto.brand_id,
+    });
     if (!brand) {
-      throw new NotFoundException(`Brand with id ${createProductDto.brand_id} not found`);
+      throw new NotFoundException(
+        `Brand with id ${createProductDto.brand_id} not found`,
+      );
     }
 
-    const existingCode = await this.productsRepository.findOneBy({ code: createProductDto.code });
+    const existingCode = await this.productsRepository.findOneBy({
+      code: createProductDto.code,
+    });
     if (existingCode) {
-      throw new ConflictException(`Product code ${createProductDto.code} already exists`);
+      throw new ConflictException(
+        `Product code ${createProductDto.code} already exists`,
+      );
     }
 
     const newProduct = this.productsRepository.create(createProductDto);
@@ -57,17 +69,26 @@ export class ProductsService {
   async findAll() {
     const products = await this.productsRepository
       .createQueryBuilder('product')
-      .innerJoinAndSelect('product.brand', 'brand', 'LOWER(brand.status) = :active', {
-        active: 'active',
-      })
+      .innerJoinAndSelect(
+        'product.brand',
+        'brand',
+        'LOWER(brand.status) = :active',
+        {
+          active: 'active',
+        },
+      )
       .where('LOWER(product.status) = :active', { active: 'active' })
       .orderBy('product.create_at', 'DESC')
       .getMany();
     if (!products.length) {
       throw new NotFoundException('Khong co san pham');
     }
-    const detailedProducts = await Promise.all(products.map((product) => this.findOneDetail(product.id)));
-    const cleanProducts = detailedProducts.map((product) => this.mapProductLikeListResponse(product));
+    const detailedProducts = await Promise.all(
+      products.map((product) => this.findOneDetail(product.id)),
+    );
+    const cleanProducts = detailedProducts.map((product) =>
+      this.mapProductLikeListResponse(product),
+    );
 
     if (!cleanProducts.length) {
       throw new NotFoundException('Khong co san pham');
@@ -123,11 +144,14 @@ export class ProductsService {
             where: rxLensSpecIds.map((rxLensId) => ({ rx_lens_id: rxLensId })),
           })
         : [];
-    const featuresByRxLens = features.reduce<Record<string, Feature[]>>((acc, item) => {
-      if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
-      acc[item.rx_lens_id].push(item);
-      return acc;
-    }, {});
+    const featuresByRxLens = features.reduce<Record<string, Feature[]>>(
+      (acc, item) => {
+        if (!acc[item.rx_lens_id]) acc[item.rx_lens_id] = [];
+        acc[item.rx_lens_id].push(item);
+        return acc;
+      },
+      {},
+    );
 
     const variantIds = variants.map((variant) => variant.id);
     const images = variantIds.length
@@ -166,17 +190,23 @@ export class ProductsService {
     const { variants, ...rest } = product;
     return {
       ...rest,
-      categories: (rest.categories || []).filter((category) => this.isActive(category?.status)),
+      categories: (rest.categories || []).filter((category) =>
+        this.isActive(category?.status),
+      ),
       specs: {
-        frame_specs: (rest.specs?.frame_specs || []).filter((spec) => this.isActive(spec?.status)),
+        frame_specs: (rest.specs?.frame_specs || []).filter((spec) =>
+          this.isActive(spec?.status),
+        ),
         rx_lens_specs: (rest.specs?.rx_lens_specs || [])
           .filter((spec) => this.isActive(spec?.status))
           .map((spec) => ({
             ...spec,
-            features: (spec.features || []).filter((feature) => this.isActive(feature?.status)),
+            features: (spec.features || []).filter((feature) =>
+              this.isActive(feature?.status),
+            ),
           })),
-        contact_lens_specs: (rest.specs?.contact_lens_specs || []).filter((spec) =>
-          this.isActive(spec?.status),
+        contact_lens_specs: (rest.specs?.contact_lens_specs || []).filter(
+          (spec) => this.isActive(spec?.status),
         ),
       },
     };
@@ -186,16 +216,24 @@ export class ProductsService {
     await this.findOne(id);
 
     if (updateProductDto.brand_id) {
-      const brand = await this.brandsRepository.findOneBy({ id: updateProductDto.brand_id });
+      const brand = await this.brandsRepository.findOneBy({
+        id: updateProductDto.brand_id,
+      });
       if (!brand) {
-        throw new NotFoundException(`Brand with id ${updateProductDto.brand_id} not found`);
+        throw new NotFoundException(
+          `Brand with id ${updateProductDto.brand_id} not found`,
+        );
       }
     }
 
     if (updateProductDto.code) {
-      const existingCode = await this.productsRepository.findOneBy({ code: updateProductDto.code });
+      const existingCode = await this.productsRepository.findOneBy({
+        code: updateProductDto.code,
+      });
       if (existingCode && existingCode.id !== id) {
-        throw new ConflictException(`Product code ${updateProductDto.code} already exists`);
+        throw new ConflictException(
+          `Product code ${updateProductDto.code} already exists`,
+        );
       }
     }
 
@@ -221,7 +259,9 @@ export class ProductsService {
       category_id: categoryId,
     });
     if (existed) {
-      throw new ConflictException(`Product category (${productId}, ${categoryId}) already exists`);
+      throw new ConflictException(
+        `Product category (${productId}, ${categoryId}) already exists`,
+      );
     }
 
     const newLink = this.productCategoriesRepository.create({
@@ -248,9 +288,13 @@ export class ProductsService {
       throw new NotFoundException(`Product with id ${productId} not found`);
     }
 
-    const existingCode = await this.productVariantsRepository.findOneBy({ code: payload.code });
+    const existingCode = await this.productVariantsRepository.findOneBy({
+      code: payload.code,
+    });
     if (existingCode) {
-      throw new ConflictException(`Product variant code ${payload.code} already exists`);
+      throw new ConflictException(
+        `Product variant code ${payload.code} already exists`,
+      );
     }
 
     const variant = this.productVariantsRepository.create({
@@ -268,9 +312,13 @@ export class ProductsService {
       quantity?: number;
     },
   ) {
-    const variant = await this.productVariantsRepository.findOneBy({ id: variantId });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: variantId,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${variantId} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${variantId} not found`,
+      );
     }
 
     await this.productVariantsRepository.update(variantId, payload);
@@ -278,9 +326,13 @@ export class ProductsService {
   }
 
   async addVariantImage(variantId: string, path: string) {
-    const variant = await this.productVariantsRepository.findOneBy({ id: variantId });
+    const variant = await this.productVariantsRepository.findOneBy({
+      id: variantId,
+    });
     if (!variant) {
-      throw new NotFoundException(`Product variant with id ${variantId} not found`);
+      throw new NotFoundException(
+        `Product variant with id ${variantId} not found`,
+      );
     }
 
     const image = this.imagesRepository.create({
@@ -294,7 +346,9 @@ export class ProductsService {
   async removeImage(imageId: string) {
     const result = await this.imagesRepository.delete(imageId);
     if (result.affected === 0) {
-      throw new NotFoundException(`Image with id ${imageId} not found for delete`);
+      throw new NotFoundException(
+        `Image with id ${imageId} not found for delete`,
+      );
     }
 
     return {

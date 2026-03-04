@@ -18,6 +18,11 @@ export class ProductVariantSearchQueryDto {
   @IsString()
   product_type?: string;
 
+  @ApiPropertyOptional({ example: 'oakley' })
+  @IsOptional()
+  @IsString()
+  brand_name?: string;
+
   @ApiPropertyOptional({ example: 300000 })
   @IsOptional()
   @Type(() => Number)

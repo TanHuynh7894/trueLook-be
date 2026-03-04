@@ -82,7 +82,9 @@ export class AuthService {
 
     const rtMatches = await bcrypt.compare(rt, user.refreshToken);
     if (!rtMatches) {
-      throw new UnauthorizedException('Refresh Token khong hop le hoac da bi thu hoi!');
+      throw new UnauthorizedException(
+        'Refresh Token khong hop le hoac da bi thu hoi!',
+      );
     }
 
     const roles = user.userRoles?.map((ur) => ur.role.name) || [];
@@ -142,8 +144,10 @@ export class AuthService {
 
     // 1. Kiểm tra tồn tại
     if (!user || !user.resetOtp || !user.resetOtpExpires) {
-    throw new BadRequestException('Yêu cầu không hợp lệ hoặc mã OTP không tồn tại!');
-}
+      throw new BadRequestException(
+        'Yêu cầu không hợp lệ hoặc mã OTP không tồn tại!',
+      );
+    }
 
     // 2. Log ra để Debug (Nếu vẫn lỗi thì ông nhìn Log ở Terminal xem 2 thằng là gì)
     console.log('OTP trong DB:', user.resetOtp);
@@ -180,19 +184,21 @@ export class AuthService {
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
     // 🪄 Lấy dữ liệu từ dto ra. Tên biến ở đây sẽ khớp 100% với file DTO của ông
-    const { oldPassword, newPassword } = dto; 
-    
+    const { oldPassword, newPassword } = dto;
+
     const user = await this.usersService.findOne(userId);
-    
+
     // Log để kiểm tra, chắc chắn lần này sẽ hiện đầy đủ mật khẩu
-    console.log('userid:', userId)
-    
+    console.log('userid:', userId);
+
     console.log('user:', user);
     console.log('Old Password:', oldPassword);
     console.log('New Password:', newPassword);
 
     if (!user || !user.password) {
-      throw new NotFoundException('Không tìm thấy tài khoản hoặc thông tin mật khẩu!');
+      throw new NotFoundException(
+        'Không tìm thấy tài khoản hoặc thông tin mật khẩu!',
+      );
     }
 
     // Thực hiện so sánh với mật khẩu cũ

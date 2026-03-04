@@ -35,7 +35,11 @@ export class ProductVariant {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ name: 'create_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'create_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   create_at: Date;
 
   @Column({ name: 'update_at', type: 'timestamp', nullable: true })

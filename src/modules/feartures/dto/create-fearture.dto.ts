@@ -1,18 +1,23 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateFeatureDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   rx_lens_id: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   description?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   status?: string;
 }

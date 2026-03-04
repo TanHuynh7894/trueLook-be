@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { FeaturesService } from './feartures.service';
 import { CreateFeatureDto } from './dto/create-fearture.dto';
 import { UpdateFeatureDto } from './dto/update-fearture.dto';

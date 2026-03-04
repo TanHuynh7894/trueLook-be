@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ShippingServicesService } from './shipping_services.service';
 import { CreateShippingServiceDto } from './dto/create-shipping_service.dto';
 import { UpdateShippingServiceDto } from './dto/update-shipping_service.dto';
@@ -6,7 +14,9 @@ import { ApiExcludeController } from '@nestjs/swagger';
 @ApiExcludeController()
 @Controller('shipping-services')
 export class ShippingServicesController {
-  constructor(private readonly shippingServicesService: ShippingServicesService) {}
+  constructor(
+    private readonly shippingServicesService: ShippingServicesService,
+  ) {}
 
   @Post('create')
   create(@Body() createShippingServiceDto: CreateShippingServiceDto) {
@@ -24,7 +34,10 @@ export class ShippingServicesController {
   }
 
   @Patch('update/:id')
-  update(@Param('id') id: string, @Body() updateShippingServiceDto: UpdateShippingServiceDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateShippingServiceDto: UpdateShippingServiceDto,
+  ) {
     return this.shippingServicesService.update(id, updateShippingServiceDto);
   }
 

@@ -7,9 +7,7 @@ import { Payment } from '../payments/entities/payment.entity';
 import { Transition } from './entities/transition.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Transition, Shipping, Payment])
-  ],
+  imports: [TypeOrmModule.forFeature([Transition, Shipping, Payment])],
   controllers: [TransitionsController],
   providers: [TransitionsService],
 })

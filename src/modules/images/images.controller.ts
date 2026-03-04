@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ImagesService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
@@ -16,7 +25,10 @@ export class ImagesController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager upload anh variant (truyen variant_id va path)' })
+  @ApiOperation({
+    summary:
+      'System Admin hoac Manager upload anh variant (truyen variant_id va path)',
+  })
   create(@Body() createImageDto: CreateImageDto) {
     return this.imagesService.create(createImageDto);
   }

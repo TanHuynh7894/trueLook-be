@@ -27,10 +27,10 @@ export class AddressesService {
   }
 
   async update(userId: string, addressId: string, dto: UpdateAddressDto) {
-    const address = await this.addressesRepository.findOne({ 
-      where: { id: addressId, user_id: userId } 
+    const address = await this.addressesRepository.findOne({
+      where: { id: addressId, user_id: userId },
     });
-    
+
     if (!address) {
       throw new NotFoundException('Không tìm thấy địa chỉ này!');
     }
@@ -40,12 +40,15 @@ export class AddressesService {
   }
 
   async remove(userId: string, addressId: string) {
-    const result = await this.addressesRepository.delete({ id: addressId, user_id: userId });
-    
+    const result = await this.addressesRepository.delete({
+      id: addressId,
+      user_id: userId,
+    });
+
     if (result.affected === 0) {
       throw new NotFoundException('Không tìm thấy địa chỉ để xóa!');
     }
-    
+
     return { message: 'Đã xóa địa chỉ thành công' };
   }
 }
