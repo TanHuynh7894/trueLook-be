@@ -3,10 +3,11 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
 
 @Entity('carts')
 export class Cart {
@@ -16,12 +17,15 @@ export class Cart {
   @Column({ name: 'user_id', type: 'varchar', length: 15, unique: true })
   user_id: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ApiHideProperty() 
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
   @BeforeInsert()
   generateId() {
-    this.id = Date.now().toString();
+    if (!this.id) {
+      this.id = Date.now().toString();
+    }
   }
 }
