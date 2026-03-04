@@ -54,7 +54,8 @@ export class ProductVariantsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager')
   @ApiOperation({
-    summary: 'System Admin hoac Manager cap nhat gia va ton kho variant',
+    summary:
+      'System Admin hoac Manager cap nhat product variant (product_id, code, name, price, color, quantity, description, status)',
   })
   update(
     @Param('id') id: string,
