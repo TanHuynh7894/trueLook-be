@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Cart } from '../../carts/entities/cart.entity';
 import { ProductVariant } from '../../product_variants/entities/product_variant.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
 
 @Entity('cart_items')
 @Check(`"quantity" > 0`)
@@ -25,16 +26,20 @@ export class CartItem {
   @Column({ type: 'int' })
   quantity: number;
 
+  @ApiHideProperty()
   @ManyToOne(() => Cart, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'cart_id', referencedColumnName: 'id' })
   cart: Cart;
 
+  @ApiHideProperty()
   @ManyToOne(() => ProductVariant, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'variant_id', referencedColumnName: 'id' })
   variant: ProductVariant;
 
   @BeforeInsert()
   generateId() {
-    this.id = Date.now().toString();
+    if (!this.id) {
+      this.id = Date.now().toString();
+    }
   }
 }

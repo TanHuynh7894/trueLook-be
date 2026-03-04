@@ -13,7 +13,8 @@ export class CartsController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Lấy giỏ hàng của tôi (Chưa có sẽ tự động tạo)' })
   getMyCart(@Request() req: any) {
-    const userId = req.user.userId; 
+    const userId = req.user.sub; 
+    console.log('DỮ LIỆU TỪ TOKEN:', req.user);
     return this.cartsService.getCartByUserId(userId);
   }
 }
