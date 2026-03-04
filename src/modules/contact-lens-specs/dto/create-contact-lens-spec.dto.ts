@@ -3,10 +3,6 @@ import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 export class CreateContactLensSpecDto {
   @IsString()
   @IsNotEmpty()
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
   product_id: string;
 
   @IsOptional()
@@ -32,6 +28,10 @@ export class CreateContactLensSpecDto {
   @IsOptional()
   @IsNumber()
   max_cylinder?: number;
+
+  @IsOptional()
+  @IsNumber()
+  axis_min?: number;
 
   @IsOptional()
   @IsString()

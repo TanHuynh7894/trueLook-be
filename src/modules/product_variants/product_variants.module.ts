@@ -12,6 +12,7 @@ import { FrameSpec } from '../frame-specs/entities/frame-spec.entity';
 import { RxLensSpec } from '../rx-lens-specs/entities/rx-lens-spec.entity';
 import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spec.entity';
 import { Feature } from '../feartures/entities/fearture.entity';
+import { ContactLensAxis } from '../contact_lens_axis/entities/contact_lens_axi.entity';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Feature } from '../feartures/entities/fearture.entity';
       FrameSpec,
       RxLensSpec,
       ContactLensSpec,
+      ContactLensAxis,
       Feature,
     ]),
   ],

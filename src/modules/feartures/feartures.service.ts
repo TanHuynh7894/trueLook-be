@@ -13,7 +13,10 @@ export class FeaturesService {
   ) {}
 
   create(dto: CreateFeatureDto) {
-    const feature = this.repo.create(dto);
+    const feature = this.repo.create({
+      id: `FEA${Date.now().toString().slice(-12)}`,
+      ...dto,
+    });
     return this.repo.save(feature);
   }
 
@@ -37,7 +40,11 @@ export class FeaturesService {
   }
 
   async remove(id: string) {
-    const feature = await this.findOne(id);
-    return await this.repo.remove(feature);
+    await this.findOne(id);
+    await this.repo.update(id, { status: 'Inactive' });
+    return {
+      message: `Da chuyen feature ${id} sang Inactive`,
+      statusCode: 200,
+    };
   }
 }
