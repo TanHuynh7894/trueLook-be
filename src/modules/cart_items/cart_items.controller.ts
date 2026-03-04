@@ -15,7 +15,7 @@ import { UpdateCartItemDto } from './dto/update-cart_item.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
-@ApiTags('Cart Items (Sản phẩm trong giỏ)')
+@ApiTags('Cart Items')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard('jwt'))
 @Controller('cart-items')
