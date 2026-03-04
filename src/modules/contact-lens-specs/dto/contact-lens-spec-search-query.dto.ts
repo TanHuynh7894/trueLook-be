@@ -2,11 +2,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class UpdateContactLensSpecDto {
-  @ApiPropertyOptional({ example: 'P000000000001' })
+export class ContactLensSpecSearchQueryDto {
+  @ApiPropertyOptional({ example: 'acuvue' })
   @IsOptional()
   @IsString()
-  product_id?: string;
+  product_name?: string;
 
   @ApiPropertyOptional({ example: 8.6 })
   @IsOptional()
@@ -20,38 +20,39 @@ export class UpdateContactLensSpecDto {
   @IsNumber()
   diameter?: number;
 
-  @ApiPropertyOptional({ example: -10 })
+  @ApiPropertyOptional({ example: -8, description: 'Gia tri sphere toi thieu' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  min_sphere?: number;
+  sphere_min?: number;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiPropertyOptional({ example: 0, description: 'Gia tri sphere toi da' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  max_sphere?: number;
+  sphere_max?: number;
 
-  @ApiPropertyOptional({ example: -2.25 })
+  @ApiPropertyOptional({
+    example: -2.25,
+    description: 'Gia tri cylinder toi thieu',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  min_cylinder?: number;
+  cylinder_min?: number;
 
-  @ApiPropertyOptional({ example: -0.75 })
+  @ApiPropertyOptional({
+    example: -0.75,
+    description: 'Gia tri cylinder toi da',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  max_cylinder?: number;
+  cylinder_max?: number;
 
   @ApiPropertyOptional({ example: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  axis_min?: number;
-
-  @ApiPropertyOptional({ example: 'Active' })
-  @IsOptional()
-  @IsString()
-  status?: string;
+  axis?: number;
 }

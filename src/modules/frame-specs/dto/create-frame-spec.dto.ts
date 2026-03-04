@@ -1,43 +1,50 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsNumber, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateFrameSpecDto {
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-
+  @ApiProperty({ example: 'P000000000001' })
   @IsString()
   @IsNotEmpty()
   product_id: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Full Rim' })
   @IsString()
-  type?: string;
+  @IsNotEmpty()
+  type: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Titanium' })
   @IsString()
-  material?: string;
+  @IsNotEmpty()
+  material: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 54 })
+  @Type(() => Number)
   @IsNumber()
-  a?: number;
+  a: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 40 })
+  @Type(() => Number)
   @IsNumber()
-  b?: number;
+  b: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 18 })
+  @Type(() => Number)
   @IsNumber()
-  dbl?: number;
+  dbl: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Rectangle' })
   @IsString()
-  shape?: string;
+  @IsNotEmpty()
+  shape: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 21.5 })
+  @Type(() => Number)
   @IsNumber()
-  weight?: number;
+  weight: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Active' })
   @IsString()
-  status?: string;
+  @IsNotEmpty()
+  status: string;
 }

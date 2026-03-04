@@ -17,6 +17,7 @@ import { ContactLensSpec } from '../contact-lens-specs/entities/contact-lens-spe
 import { ProductVariantSearchQueryDto } from './dto/product-variant-search-query.dto';
 import { Category } from '../categories/entities/category.entity';
 import { Feature } from '../feartures/entities/fearture.entity';
+import { ContactLensAxis } from '../contact_lens_axis/entities/contact_lens_axi.entity';
 
 @Injectable()
 export class ProductVariantsService {
@@ -35,6 +36,8 @@ export class ProductVariantsService {
     private rxLensSpecsRepository: Repository<RxLensSpec>,
     @InjectRepository(ContactLensSpec)
     private contactLensSpecsRepository: Repository<ContactLensSpec>,
+    @InjectRepository(ContactLensAxis)
+    private contactLensAxisRepository: Repository<ContactLensAxis>,
     @InjectRepository(Feature)
     private featuresRepository: Repository<Feature>,
   ) {}
@@ -128,6 +131,22 @@ export class ProductVariantsService {
       },
       {},
     );
+    const contactLensSpecIds = contactLensSpecs.map((spec) => spec.id);
+    const contactLensAxis =
+      contactLensSpecIds.length > 0
+        ? await this.contactLensAxisRepository.find({
+            where: contactLensSpecIds.map((id) => ({
+              contact_lens_spec_id: id,
+            })),
+          })
+        : [];
+    const axisByContactLensSpec = contactLensAxis.reduce<
+      Record<string, ContactLensAxis[]>
+    >((acc, item) => {
+      if (!acc[item.contact_lens_spec_id]) acc[item.contact_lens_spec_id] = [];
+      acc[item.contact_lens_spec_id].push(item);
+      return acc;
+    }, {});
 
     const productMap = new Map(
       products.map((product) => [product.id, product]),
@@ -160,9 +179,12 @@ export class ProductVariantsService {
                     ...spec,
                     features: featuresByRxLens[spec.id] || [],
                   })),
-                contact_lens_specs: contactLensSpecs.filter(
-                  (spec) => spec.product_id === variant.product_id,
-                ),
+                contact_lens_specs: contactLensSpecs
+                  .filter((spec) => spec.product_id === variant.product_id)
+                  .map((spec) => ({
+                    ...spec,
+                    contact_lens_axis: axisByContactLensSpec[spec.id] || [],
+                  })),
               },
             }
           : null,
@@ -224,6 +246,22 @@ export class ProductVariantsService {
       },
       {},
     );
+    const contactLensSpecIds = contactLensSpecs.map((spec) => spec.id);
+    const contactLensAxis =
+      contactLensSpecIds.length > 0
+        ? await this.contactLensAxisRepository.find({
+            where: contactLensSpecIds.map((contactLensSpecId) => ({
+              contact_lens_spec_id: contactLensSpecId,
+            })),
+          })
+        : [];
+    const axisByContactLensSpec = contactLensAxis.reduce<
+      Record<string, ContactLensAxis[]>
+    >((acc, item) => {
+      if (!acc[item.contact_lens_spec_id]) acc[item.contact_lens_spec_id] = [];
+      acc[item.contact_lens_spec_id].push(item);
+      return acc;
+    }, {});
 
     return {
       ...productVariant,
@@ -240,7 +278,10 @@ export class ProductVariantsService {
                 ...spec,
                 features: featuresByRxLens[spec.id] || [],
               })),
-              contact_lens_specs: contactLensSpecs,
+              contact_lens_specs: contactLensSpecs.map((spec) => ({
+                ...spec,
+                contact_lens_axis: axisByContactLensSpec[spec.id] || [],
+              })),
             },
           }
         : null,

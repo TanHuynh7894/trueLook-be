@@ -1,42 +1,49 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateRxLensSpecDto {
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-
+  @ApiProperty({ example: 'P000000000001' })
   @IsString()
   @IsNotEmpty()
   product_id: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Single Vision' })
   @IsString()
-  type?: string;
+  @IsNotEmpty()
+  type: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 'Polycarbonate' })
   @IsString()
-  material?: string;
+  @IsNotEmpty()
+  material: string;
 
-  @IsOptional()
+  @ApiProperty({ example: 56 })
+  @Type(() => Number)
   @IsNumber()
-  lens_width?: number;
+  lens_width: number;
 
-  @IsOptional()
+  @ApiProperty({ example: -10 })
+  @Type(() => Number)
   @IsNumber()
-  min_sphere?: number;
+  min_sphere: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 10 })
+  @Type(() => Number)
   @IsNumber()
-  max_sphere?: number;
+  max_sphere: number;
 
-  @IsOptional()
+  @ApiProperty({ example: -6 })
+  @Type(() => Number)
   @IsNumber()
-  min_cylinder?: number;
+  min_cylinder: number;
 
-  @IsOptional()
+  @ApiProperty({ example: 6 })
+  @Type(() => Number)
   @IsNumber()
-  max_cylinder?: number;
+  max_cylinder: number;
 
+  @ApiPropertyOptional({ example: 'Active' })
   @IsOptional()
   @IsString()
   status?: string;

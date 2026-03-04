@@ -27,6 +27,9 @@ export class ContactLensSpec {
   @Column({ type: 'float', nullable: true })
   max_cylinder: number;
 
+  @Column({ type: 'int', nullable: true })
+  axis_min: number;
+
   @Column({ nullable: true })
   status: string;
 

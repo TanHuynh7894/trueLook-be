@@ -30,7 +30,8 @@ import { RxLensSpecsModule } from './modules/rx-lens-specs/rx-lens-specs.module'
 import { ContactLensSpecsModule } from './modules/contact-lens-specs/contact-lens-specs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-
+import { FeaturesModule } from './modules/feartures/feartures.module';
+import { ContactLensAxisModule } from './modules/contact_lens_axis/contact_lens_axis.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -92,7 +93,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
     FrameSpecsModule,
     RxLensSpecsModule,
     ContactLensSpecsModule,
+    ContactLensAxisModule,
     AuthModule,
+    FeaturesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
