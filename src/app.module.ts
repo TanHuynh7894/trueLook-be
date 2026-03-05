@@ -32,6 +32,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FeaturesModule } from './modules/feartures/feartures.module';
 import { ContactLensAxisModule } from './modules/contact_lens_axis/contact_lens_axis.module';
+import { SupersetModule } from './modules/superset/superset.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -96,6 +98,7 @@ import { ContactLensAxisModule } from './modules/contact_lens_axis/contact_lens_
     ContactLensAxisModule,
     AuthModule,
     FeaturesModule,
+    SupersetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
