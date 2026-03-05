@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
+import { Image } from '../../images/entities/image.entity';
 
 @Entity('product_variants')
 export class ProductVariant {
@@ -51,6 +53,9 @@ export class ProductVariant {
   @ManyToOne(() => Product, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
   product: Product;
+
+  @OneToMany(() => Image, (image) => image.variant) 
+  images: Image[];
 
   @BeforeInsert()
   generateId() {

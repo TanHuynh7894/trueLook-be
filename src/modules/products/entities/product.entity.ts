@@ -6,8 +6,11 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Brand } from '../../brands/entities/brand.entity';
+import { Category } from '../../categories/entities/category.entity';
 
 @Entity('products')
 export class Product {
@@ -45,6 +48,20 @@ export class Product {
   @ManyToOne(() => Brand)
   @JoinColumn({ name: 'brand_id', referencedColumnName: 'id' })
   brand: Brand;
+
+  @ManyToMany(() => Category)
+  @JoinTable({
+    name: 'product_categories', 
+    joinColumn: { 
+      name: 'product_id', 
+      referencedColumnName: 'id' 
+    },
+    inverseJoinColumn: { 
+      name: 'category_id',
+      referencedColumnName: 'id' 
+    }
+  })
+  categories: Category[];
 
   @BeforeInsert()
   generateId() {

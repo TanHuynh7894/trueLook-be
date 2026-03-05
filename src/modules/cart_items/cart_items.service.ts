@@ -9,6 +9,14 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
 
 @Injectable()
 export class CartItemsService {
+  private readonly deepRelations = [
+    'variant',                        
+    'variant.images',               
+    'variant.product',                
+    'variant.product.brand',         
+    'variant.product.categories',     
+  ];
+
   constructor(
     @InjectRepository(CartItem)
     private cartItemsRepo: Repository<CartItem>,
@@ -37,17 +45,23 @@ export class CartItemsService {
       variant_id: variant_id,
     });
 
+    let savedItem;
     if (existingItem) {
       existingItem.quantity += quantity;
-      return await this.cartItemsRepo.save(existingItem);
+      savedItem = await this.cartItemsRepo.save(existingItem);
     } else {
       const newItem = this.cartItemsRepo.create({
         cart_id: cart.id,
         variant_id: variant_id,
         quantity: quantity,
       });
-      return await this.cartItemsRepo.save(newItem);
+      savedItem = await this.cartItemsRepo.save(newItem);
     }
+
+    return await this.cartItemsRepo.findOne({
+      where: { id: savedItem.id },
+      relations: this.deepRelations, 
+    });
   }
 
   async getMyCartItems(userId: string) {
@@ -58,12 +72,16 @@ export class CartItemsService {
 
     return await this.cartItemsRepo.find({
       where: { cart_id: cart.id },
-      relations: ['variant'], 
+      relations: this.deepRelations, 
     });
   }
 
   async updateQuantity(id: string, updateCartItemDto: UpdateCartItemDto) {
-    const cartItem = await this.cartItemsRepo.findOneBy({ id });
+    const cartItem = await this.cartItemsRepo.findOne({
+      where: { id },
+      relations: this.deepRelations, 
+    });
+
     if (!cartItem) {
       throw new NotFoundException(`Không tìm thấy sản phẩm trong giỏ (ID: ${id})`);
     }
