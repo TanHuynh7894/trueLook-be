@@ -9,11 +9,8 @@ import {
 
 @Entity('payments')
 export class Payment {
-  @PrimaryColumn({ length: 15 })
-  id: string;
-
-  @Column({ length: 15 })
-  order_id: string;
+  @PrimaryColumn({ type: 'varchar', length: 15 })
+  id: string; // id = order_code
 
   @Column({ nullable: true })
   method: string;
