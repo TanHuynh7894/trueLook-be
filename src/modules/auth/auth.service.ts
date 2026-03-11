@@ -12,6 +12,7 @@ import { UserRolesService } from '../user_roles/user_roles.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { randomBytes } from 'crypto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import axios from 'axios';
 
 interface GoogleProfilePayload {
   email?: string;
@@ -38,7 +39,37 @@ export class AuthService {
       throw new UnauthorizedException('Mat khau khong chinh xac!');
     }
 
-    return this.buildAuthResponse(user);
+    let keycloakToken = null;
+    try {
+      const params = new URLSearchParams();
+      params.append('client_id', process.env.KEYCLOAK_CLIENT_ID || 'truelook-api'); 
+      params.append('client_secret', process.env.KEYCLOAK_CLIENT_SECRET || '');
+      params.append('grant_type', 'password');
+      params.append('username', username);
+      params.append('password', pass);
+      const keycloakUrl = process.env.KEYCLOAK_TOKEN_URL || 'https://keycloak.tanhuynh.xyz/realms/analytics/protocol/openid-connect/token';
+      const kcResponse = await axios.post(
+        keycloakUrl,
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+      
+      keycloakToken = kcResponse.data.access_token;
+      console.log('Lấy token từ Keycloak thành công!');
+    } catch (error) {
+      console.error('Lỗi khi lấy token từ Keycloak:', error?.response?.data || error.message);
+    }
+
+    const localAuthResponse = await this.buildAuthResponse(user);
+
+    return {
+      ...localAuthResponse,
+      keycloak_token: keycloakToken,
+    };
   }
 
   async signInWithGoogle(googleUser: GoogleProfilePayload) {
