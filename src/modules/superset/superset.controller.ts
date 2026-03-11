@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { SupersetService } from './superset.service';
-import { CreateSupersetDto } from './dto/create-superset.dto';
-import { UpdateSupersetDto } from './dto/update-superset.dto';
+import { LoginSupersetDto } from './dto/login-superset.dto';
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
+@ApiTags('Superset')
+@ApiBearerAuth('access-token')
 @Controller('superset')
 export class SupersetController {
   constructor(private readonly supersetService: SupersetService) {}
 
-  @Post()
-  create(@Body() createSupersetDto: CreateSupersetDto) {
-    return this.supersetService.create(createSupersetDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.supersetService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.supersetService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSupersetDto: UpdateSupersetDto) {
-    return this.supersetService.update(+id, updateSupersetDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.supersetService.remove(+id);
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager')
+  @Get('sso-link')
+  getLink() {
+    return this.supersetService.getSsoLink();
   }
 }

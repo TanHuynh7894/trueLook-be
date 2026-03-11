@@ -33,6 +33,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  app.useGlobalPipes(new ValidationPipe());
+
   app.enableCors({
     origin: process.env.FRONTEND_URLS!.split(','),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
