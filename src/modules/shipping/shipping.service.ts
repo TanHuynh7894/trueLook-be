@@ -4,13 +4,14 @@ import { Repository } from 'typeorm';
 import { Shipping } from './entities/shipping.entity';
 import { CreateShippingDto } from './dto/create-shipping.dto';
 import { UpdateShippingDto } from './dto/update-shipping.dto';
+import axios from 'axios';
 
 @Injectable()
 export class ShippingService {
   constructor(
     @InjectRepository(Shipping)
     private shippingRepo: Repository<Shipping>,
-  ) {}
+  ) { }
 
   async create(dto: CreateShippingDto): Promise<Shipping> {
     const newShipping = this.shippingRepo.create(dto);
@@ -39,5 +40,31 @@ export class ShippingService {
     const shipping = await this.findOne(id);
     await this.shippingRepo.remove(shipping);
     return { message: `Đã xóa thành công vận đơn ${id}` };
+  }
+
+  async getAccessToken() {
+    try {
+      const res = await axios.post(
+        'https://open.nhanh.vn/api/oauth/token',
+        {
+          appId: process.env.NHANH_APP_ID,
+          secretKey: process.env.NHANH_APP_SECRET,
+        }
+      );
+
+      console.log('Nhanh response:', res.data);
+     
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        'Nhanh API error:',
+        error.response?.data || error.message,
+         console.log('AppId:', process.env.NHANH_APP_ID),
+      console.log('Secret:', process.env.NHANH_APP_SECRET),
+      );
+
+      throw error;
+    }
   }
 }
