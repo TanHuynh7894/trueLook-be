@@ -10,6 +10,7 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
 import { Transition } from '../transitions/entities/transition.entity';
+import { Promotion } from '../promotions/entities/promotion.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -42,6 +43,9 @@ export class PaymentsService {
     @InjectRepository(Transition)
     private transitionRepo: Repository<Transition>,
 
+    @InjectRepository(Promotion)
+    private promotionRepo: Repository<Promotion>,
+
   ) {
 
     this.payOS = new PayOS({
@@ -53,45 +57,133 @@ export class PaymentsService {
   }
 
   /**
-   * CREATE PAYMENT LINK
+   * VALIDATE PROMOTION
    */
-  async createPayment(orderId: string) {
+  private async validatePromotion(order: Order, promotion: Promotion) {
+
+    const now = new Date();
+
+    if (promotion.status !== "active") {
+      throw new Error("Promotion not active");
+    }
+
+    if (now < promotion.start_time || now > promotion.end_time) {
+      throw new Error("Promotion expired");
+    }
+
+    const minOrder = Number(promotion.condition || 0);
+    const orderTotal = Number(order.total);
+
+    if (orderTotal < minOrder) {
+      throw new Error(`Order must be >= ${minOrder}`);
+    }
+
+    return true;
+  }
+
+  /**
+   * CALCULATE DISCOUNT
+   */
+  private calculateDiscount(orderTotal: number, promotion: Promotion): number {
+
+    let discount = Number(promotion.discount);
+
+    if (discount > orderTotal) {
+      discount = orderTotal;
+    }
+
+    return discount;
+  }
+
+  /**
+   * CREATE PAYMENT
+   */
+  async createPayment(orderId: string, promotionId?: string) {
 
     const order = await this.orderRepo.findOne({
       where: { id: orderId }
     });
 
     if (!order) {
-      throw new Error("Order not found");
+      throw new NotFoundException("Order not found");
     }
 
-    const amount = Number(order.total);
+    const totalAmount = Number(order.total);
 
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(totalAmount) || totalAmount <= 0) {
       throw new Error("Invalid order amount");
+    }
+
+    let discount = 0;
+
+    /**
+     * APPLY PROMOTION
+     */
+    if (promotionId) {
+
+      const promotion = await this.promotionRepo.findOne({
+        where: { id: promotionId }
+      });
+
+      if (promotion) {
+
+        await this.validatePromotion(order, promotion);
+
+        discount = this.calculateDiscount(totalAmount, promotion);
+
+      }
+
+    }
+
+    const finalAmount = totalAmount - discount;
+
+    if (finalAmount < 0) {
+      throw new Error("Invalid final amount");
+    }
+
+    /**
+     * CASE: ORDER FREE (100% DISCOUNT)
+     */
+    if (finalAmount === 0) {
+
+      await this.confirmOrder(orderId);
+
+      return {
+        message: "Order paid by promotion",
+        total: totalAmount,
+        discount: discount,
+        finalAmount: 0
+      };
+
     }
 
     const orderCode = Date.now();
 
+    /**
+     * SAVE PAYMENT
+     */
     const payment = this.paymentRepo.create({
       id: orderCode.toString(),
       order_id: orderId,
-      amount: amount,
+      amount: finalAmount,
       method: "Bank Transfer",
       status: "Pending"
     });
 
     await this.paymentRepo.save(payment);
 
+    /**
+     * CREATE PAYOS PAYMENT
+     */
     const body = {
       orderCode: orderCode,
-      amount: amount,
+      amount: finalAmount,
       description: `Order ${orderId}`,
       items: [
         {
           name: "Order payment",
           quantity: 1,
-          price: amount,
+          price: finalAmount,
         }
       ],
       cancelUrl: process.env.PAYOS_CANCEL_URL!,
@@ -104,13 +196,16 @@ export class PaymentsService {
 
     return {
       checkoutUrl: paymentLink.checkoutUrl,
-      qrCode: paymentLink.qrCode
+      qrCode: paymentLink.qrCode,
+      total: totalAmount,
+      discount: discount,
+      finalAmount: finalAmount
     };
 
   }
 
   /**
-   * WEBHOOK FROM PAYOS
+   * PAYOS WEBHOOK
    */
   async handleWebhook(body: any) {
 
@@ -132,8 +227,11 @@ export class PaymentsService {
       return;
     }
 
+    /**
+     * PREVENT DOUBLE WEBHOOK
+     */
     if (payment.status === "Completed") {
-      this.logger.log("Payment already completed");
+      this.logger.log("Payment already processed");
       return;
     }
 
@@ -143,7 +241,7 @@ export class PaymentsService {
     await this.paymentRepo.save(payment);
 
     /**
-     * Lưu transaction PayOS vào bảng transitions
+     * SAVE TRANSACTION
      */
     const transition = this.transitionRepo.create({
       id: Date.now().toString(),
@@ -156,7 +254,7 @@ export class PaymentsService {
     await this.transitionRepo.save(transition);
 
     /**
-     * confirm order
+     * CONFIRM ORDER
      */
     await this.confirmOrder(payment.order_id);
 
@@ -175,6 +273,9 @@ export class PaymentsService {
         where: { order_id: orderId }
       });
 
+      /**
+       * UPDATE STOCK
+       */
       for (const item of orderDetails) {
 
         const variant = await manager.findOne(ProductVariant, {
@@ -189,15 +290,22 @@ export class PaymentsService {
 
       }
 
+      /**
+       * UPDATE ORDER STATUS
+       */
       const order = await manager.findOne(Order, {
         where: { id: orderId }
       });
 
       if (!order) return;
 
-      order.status = "Process";
+      order.status = "Pending";
+
       await manager.save(order);
 
+      /**
+       * CLEAR CART
+       */
       const cart = await manager.findOne(Cart, {
         where: { user_id: order.customer_id }
       });

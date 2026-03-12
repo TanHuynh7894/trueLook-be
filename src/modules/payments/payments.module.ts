@@ -12,6 +12,7 @@ import { OrderDetail } from '../order_details/entities/order_detail.entity';
 import { ProductVariant } from '../product_variants/entities/product_variant.entity';
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
+import { Promotion } from '../promotions/entities/promotion.entity';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CartItem } from '../cart_items/entities/cart_item.entity';
       ProductVariant,
       Cart,
       CartItem,
+      Promotion,
     ]),
   ],
   controllers: [PaymentsController],
