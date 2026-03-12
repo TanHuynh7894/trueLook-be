@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Chat True Look</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h2>Test Chat Hỗ Trợ</h2>
+    
+    <button onclick="joinRoom()">1. Vào phòng Ticket 1</button><br><br>
+    
+    <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." style="width: 300px; padding: 5px;">
+    <button onclick="sendMessage()">2. Gửi tin nhắn</button>
+
+    <ul id="messages" style="background: #f4f4f4; padding: 20px; height: 300px; overflow-y: scroll;"></ul>
+
+    <script>
+        // Khởi tạo kết nối với token
+        const socket = io('http://localhost:3000/support', {
+            auth: {
+                token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwIiwidXNlcm5hbWUiOiJ0ZXN0ZXIwMSIsImZ1bGxOYW1lIjoidGFuaHV5bmgiLCJyb2xlcyI6WyJTeXN0ZW0gQWRtaW4iXSwiaWF0IjoxNzczMzQyNDQ0LCJleHAiOjE3NzMzNDMzNDR9.9wx9ov_SD1ivQbpD4N4Brtk51tzs0eUUI6Byun7VvMA" 
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log('Đã kết nối thành công với server!');
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('Lỗi kết nối (Có thể sai token):', err.message);
+        });
+
+        // Hứng sự kiện nhận tin nhắn từ server
+        socket.on('receive_message', (data) => {
+            console.log('Tin nhắn mới:', data);
+            const li = document.createElement('li');
+            li.innerHTML = `<b>${data.senderRole}</b>: ${data.message}`;
+            document.getElementById('messages').appendChild(li);
+        });
+
+        // Hàm gọi sự kiện join_ticket
+        function joinRoom() {
+            socket.emit('join_ticket', 1, (response) => {
+                console.log('Join room response:', response);
+                alert('Đã vào phòng ticket 1');
+            });
+        }
+
+        // Hàm gọi sự kiện send_message
+        function sendMessage() {
+            const msg = document.getElementById('msgInput').value;
+            socket.emit('send_message', {
+                ticketId: 1,
+                message: msg
+            }, (response) => {
+                console.log('Server xác nhận đã lưu:', response);
+            });
+            document.getElementById('msgInput').value = ''; // Xóa trắng ô input
+        }
+    </script>
+</body>
+</html>
