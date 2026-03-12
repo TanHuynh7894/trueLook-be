@@ -9,6 +9,7 @@ import { OrderDetail } from '../order_details/entities/order_detail.entity';
 import { ProductVariant } from '../product_variants/entities/product_variant.entity';
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
+import { Transition } from '../transitions/entities/transition.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -38,6 +39,9 @@ export class PaymentsService {
     @InjectRepository(CartItem)
     private cartItemRepo: Repository<CartItem>,
 
+    @InjectRepository(Transition)
+    private transitionRepo: Repository<Transition>,
+
   ) {
 
     this.payOS = new PayOS({
@@ -49,7 +53,7 @@ export class PaymentsService {
   }
 
   /**
-   * CREATE PAYMENT
+   * CREATE PAYMENT LINK
    */
   async createPayment(orderId: string) {
 
@@ -94,7 +98,7 @@ export class PaymentsService {
       returnUrl: process.env.PAYOS_RETURN_URL!,
     };
 
-    this.logger.log(`Creating PayOS payment for order ${orderId} amount ${amount}`);
+    this.logger.log(`Creating PayOS payment for order ${orderId}`);
 
     const paymentLink = await this.payOS.paymentRequests.create(body);
 
@@ -106,11 +110,9 @@ export class PaymentsService {
   }
 
   /**
-   * WEBHOOK
+   * WEBHOOK FROM PAYOS
    */
   async handleWebhook(body: any) {
-
-    this.logger.log("===== PAYOS WEBHOOK RECEIVED =====");
 
     const data = await this.payOS.webhooks.verify(body);
 
@@ -119,9 +121,7 @@ export class PaymentsService {
       return;
     }
 
-    const orderCode = data.orderCode;
-
-    const paymentId = orderCode.toString();
+    const paymentId = data.orderCode.toString();
 
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId }
@@ -142,6 +142,22 @@ export class PaymentsService {
 
     await this.paymentRepo.save(payment);
 
+    /**
+     * Lưu transaction PayOS vào bảng transitions
+     */
+    const transition = this.transitionRepo.create({
+      id: Date.now().toString(),
+      payment_id: payment.id,
+      transition_payment: data.reference,
+      create_at: new Date(),
+      update_time: new Date(),
+    });
+
+    await this.transitionRepo.save(transition);
+
+    /**
+     * confirm order
+     */
     await this.confirmOrder(payment.order_id);
 
     this.logger.log(`Payment success ${payment.id}`);
