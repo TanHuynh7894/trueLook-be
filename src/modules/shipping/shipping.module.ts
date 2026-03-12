@@ -3,8 +3,9 @@ import { ShippingService } from './shipping.service';
 import { ShippingController } from './shipping.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Shipping } from './entities/shipping.entity';
+import { NhanhConfig } from './entities/nhanh-config.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([Shipping])],
+  imports: [TypeOrmModule.forFeature([Shipping, NhanhConfig])],
   controllers: [ShippingController],
   providers: [ShippingService],
 })
