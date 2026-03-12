@@ -24,7 +24,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Tao order' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff' ,'Customer')
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.create(createOrderDto);
   }
