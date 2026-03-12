@@ -63,7 +63,7 @@ export class PaymentsService {
 
     const now = new Date();
 
-    if (promotion.status !== "active") {
+    if (promotion.status !== "Active") {
       throw new Error("Promotion not active");
     }
 

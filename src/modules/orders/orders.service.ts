@@ -299,4 +299,30 @@ export class OrdersService {
 
     return orders;
   }
+
+  async getOrderDetails(orderId: string) {
+
+  const order = await this.ordersRepository.findOne({
+    where: { id: orderId }
+  });
+
+  if (!order) {
+    throw new NotFoundException(`Order with id ${orderId} not found`);
+  }
+
+  const orderDetails = await this.orderDetailRepository.find({
+    where: { order_id: orderId }
+  });
+
+  if (orderDetails.length === 0) {
+    throw new NotFoundException('Order has no items');
+  }
+
+  return {
+    order_id: orderId,
+    items: orderDetails
+  };
+}
+
+  
 }

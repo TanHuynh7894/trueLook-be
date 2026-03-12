@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards, 
+  UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -24,7 +24,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Tao order' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff' ,'Customer')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff', 'Customer')
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.create(createOrderDto);
   }
@@ -72,5 +72,14 @@ export class OrdersController {
   @ApiOperation({ summary: 'nguoi dung xem lai order của minh' })
   getOrdersByUser(@Param('userId') userId: string) {
     return this.ordersService.getOrdersByUser(userId);
+  }
+
+  @Get(':id/details')
+  @ApiOperation({ summary: 'Lay chi tiet order' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  getOrderDetails(@Param('id') id: string) {
+    return this.ordersService.getOrderDetails(id);
   }
 }
