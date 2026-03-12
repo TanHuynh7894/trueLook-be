@@ -13,7 +13,7 @@ import { UpdateOrderDto, UpdateOrderStatusDto } from './dto/update-order.dto';
 import { ApiExcludeController } from '@nestjs/swagger';
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
@@ -46,5 +46,10 @@ export class OrdersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.ordersService.remove(id);
+  }
+
+  @Get('/user/:userId')
+  getOrdersByUser(@Param('userId') userId: string) {
+    return this.ordersService.getOrdersByUser(userId);
   }
 }

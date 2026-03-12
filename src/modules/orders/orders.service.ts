@@ -35,7 +35,7 @@ export class OrdersService {
     private orderDetailRepository: Repository<OrderDetail>,
 
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   /**
    * CREATE ORDER (TEMP)
@@ -229,21 +229,21 @@ export class OrdersService {
 
   async updateStatus(id: string, dto: UpdateOrderStatusDto) {
 
-  const order = await this.ordersRepository.findOneBy({ id });
+    const order = await this.ordersRepository.findOneBy({ id });
 
-  if (!order) {
-    throw new NotFoundException(`Order with id ${id} not found`);
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+
+    order.status = dto.status;
+
+    await this.ordersRepository.save(order);
+
+    return {
+      message: "Order status updated",
+      order
+    };
   }
-
-  order.status = dto.status;
-
-  await this.ordersRepository.save(order);
-
-  return {
-    message: "Order status updated",
-    order
-  };
-}
 
   /**
    * DELETE
@@ -260,5 +260,19 @@ export class OrdersService {
       message: `Deleted order with id: ${id}`,
       statusCode: 200,
     };
+  }
+
+  async getOrdersByUser(userId: string) {
+
+    const orders = await this.ordersRepository.find({
+      where: { customer_id: userId },
+      order: { create_at: "DESC" }
+    });
+
+    if (orders.length === 0) {
+      throw new NotFoundException(`No orders found for user ${userId}`);
+    }
+
+    return orders;
   }
 }
