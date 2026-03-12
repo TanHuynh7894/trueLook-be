@@ -185,18 +185,24 @@ export class OrdersService {
   /**
    * FIND ALL
    */
-  findAll() {
-    return this.ordersRepository.find();
+  async findAll() {
+    return this.ordersRepository.find({
+      order: {
+        create_at: 'DESC',
+      },
+    });
   }
 
   /**
    * FIND ONE
    */
   async findOne(id: string) {
-    const order = await this.ordersRepository.findOneBy({ id });
+    const order = await this.ordersRepository.findOne({
+      where: { id },
+    });
 
     if (!order) {
-      throw new NotFoundException(`Order with id ${id} not found`);
+      throw new NotFoundException('Order not found');
     }
 
     return order;
@@ -235,6 +241,14 @@ export class OrdersService {
       throw new NotFoundException(`Order with id ${id} not found`);
     }
 
+    const allowedStatus = ['Confirm', 'Shipping', 'Cancel'];
+
+    if (!allowedStatus.includes(dto.status)) {
+      throw new BadRequestException(
+        `Status must be one of: ${allowedStatus.join(', ')}`
+      );
+    }
+
     order.status = dto.status;
 
     await this.ordersRepository.save(order);
@@ -250,15 +264,25 @@ export class OrdersService {
    */
   async remove(id: string) {
 
-    const result = await this.ordersRepository.delete(id);
+    const order = await this.ordersRepository.findOne({
+      where: { id }
+    });
 
-    if (result.affected === 0) {
-      throw new NotFoundException(`Order with id ${id} not found for delete`);
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
 
+    if (order.status === 'Cancel') {
+      throw new BadRequestException('Order already cancelled');
+    }
+
+    order.status = 'Cancel';
+
+    await this.ordersRepository.save(order);
+
     return {
-      message: `Deleted order with id: ${id}`,
-      statusCode: 200,
+      message: `Order ${id} has been cancelled`,
+      order
     };
   }
 
