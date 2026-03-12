@@ -26,10 +26,8 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
     private readonly configService: ConfigService,
   ) {}
 
-  // 1. Xác thực người dùng khi vừa mở khung chat
   async handleConnection(client: Socket) {
     try {
-      // Bắt token từ nhiều nguồn (phòng hờ Postman gửi kiểu này, Frontend gửi kiểu nọ)
       const authHeader = client.handshake.headers['authorization'];
       const authToken = client.handshake.auth?.token;
       const rawToken = authToken || authHeader;
@@ -40,10 +38,8 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
         return;
       }
 
-      // Gọt bỏ chữ "Bearer " nếu có, chỉ lấy đúng mã token
       const token = rawToken.includes('Bearer ') ? rawToken.split(' ')[1] : rawToken;
 
-      // Lấy Secret Key (ưu tiên ConfigService, backup bằng process.env)
       const secretKey = this.configService.get<string>('JWT_ACCESS_SECRET') || process.env.JWT_ACCESS_SECRET;
       
       if (!secretKey) {

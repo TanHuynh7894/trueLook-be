@@ -13,8 +13,6 @@ import { SupportGateway } from './support.gateway';
   imports: [
     TypeOrmModule.forFeature([SupportTicket, ChatMessage]),
     ConfigModule,
-    
-    // THAY ĐỔI CHÍNH LÀ Ở DÒNG NÀY ĐÂY BA:
     JwtModule.register({}), 
   ],
   controllers: [SupportController],
