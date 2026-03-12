@@ -1,17 +1,10 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsNumber,
-  IsDateString,
-} from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePaymentDto {
 
-  @IsNumber()
-  amount: number;
-
   @IsString()
   @IsNotEmpty()
-  description: string;
+  orderId: string;
+
 }

@@ -8,9 +8,5 @@ export class CreateOrderDto {
 
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
-  total: number;
-
-  @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
   extra_fee: number;
 }

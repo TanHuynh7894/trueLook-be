@@ -2,20 +2,29 @@ import {
   Entity,
   Column,
   PrimaryColumn,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 
 @Entity('payments')
 export class Payment {
-  @PrimaryColumn({ type: 'varchar', length: 15 })
-  id: string; // id = order_code
 
-  @Column({ nullable: true })
+  @PrimaryColumn({
+    type: 'varchar',
+    length: 40,
+  })
+  id: string; // payment id
+
+  @Column({
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
   method: string;
 
-  @Column({ nullable: true })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   status: string;
 
   @Column({
@@ -29,6 +38,16 @@ export class Payment {
   })
   amount: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+  })
   payment_date: Date;
+
+  @Column({
+    type: 'varchar',
+    length: 40,
+  })
+  order_id: string;
+
 }

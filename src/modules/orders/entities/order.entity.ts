@@ -11,7 +11,7 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('orders')
 export class Order {
-  @PrimaryColumn({ type: 'varchar', length: 15 })
+  @PrimaryColumn({ type: 'varchar', length: 30 })
   id: string;
 
   @Column({ name: 'customer_id', type: 'varchar', length: 15 })
@@ -46,4 +46,11 @@ export class Order {
   updateTimestamp() {
     this.update_at = new Date();
   }
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'Pending'
+  })
+  status: string;
 }
