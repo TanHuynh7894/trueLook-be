@@ -16,7 +16,7 @@ export class PaymentsController {
 
   constructor(
     private readonly paymentService: PaymentsService
-  ) {}
+  ) { }
 
   /**
    * CREATE PAYMENT
@@ -25,7 +25,8 @@ export class PaymentsController {
   async create(@Body() body: CreatePaymentDto) {
 
     const result = await this.paymentService.createPayment(
-      body.orderId
+      body.orderId,
+      body.promotionId
     );
 
     return {
