@@ -33,6 +33,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { FeaturesModule } from './modules/feartures/feartures.module';
 import { ContactLensAxisModule } from './modules/contact_lens_axis/contact_lens_axis.module';
 import { SupersetModule } from './modules/superset/superset.module';
+import { SupportModule } from './modules/support/support.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { SupersetModule } from './modules/superset/superset.module';
     AuthModule,
     FeaturesModule,
     SupersetModule,
+    SupportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
