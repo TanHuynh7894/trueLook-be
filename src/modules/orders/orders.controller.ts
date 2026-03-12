@@ -18,7 +18,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   @ApiBearerAuth('access-token')
@@ -66,5 +66,10 @@ export class OrdersController {
   @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   remove(@Param('id') id: string) {
     return this.ordersService.remove(id);
+  }
+
+  @Get('/user/:userId')
+  getOrdersByUser(@Param('userId') userId: string) {
+    return this.ordersService.getOrdersByUser(userId);
   }
 }
