@@ -14,33 +14,20 @@ import { ApiExcludeController } from '@nestjs/swagger';
 @ApiExcludeController()
 @Controller('shipping')
 export class ShippingController {
-  constructor(private readonly shippingService: ShippingService) {}
+  constructor(private readonly shippingService: ShippingService) { }
+
+  @Post('webhook')
+  handleWebhook(@Body() body: any) {
+
+    console.log('Nhanh webhook:', body);
+
+    return {
+      success: true
+    };
+  }
 
   @Post()
   create(@Body() createShippingDto: CreateShippingDto) {
     return this.shippingService.create(createShippingDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.shippingService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shippingService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateShippingDto: UpdateShippingDto,
-  ) {
-    return this.shippingService.update(id, updateShippingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shippingService.remove(id);
   }
 }
