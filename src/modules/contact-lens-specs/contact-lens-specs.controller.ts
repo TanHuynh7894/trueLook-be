@@ -25,7 +25,7 @@ export class ContactLensSpecsController {
   @Post()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'System Admin hoac Manager tao contact lens spec (co ho tro axis_min)',
@@ -35,6 +35,9 @@ export class ContactLensSpecsController {
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'Tim contact lens specs theo product_name, base_curve, diameter, sphere_min/sphere_max, cylinder_min/cylinder_max, axis',
@@ -44,6 +47,9 @@ export class ContactLensSpecsController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
@@ -51,7 +57,7 @@ export class ContactLensSpecsController {
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'System Admin hoac Manager cap nhat contact lens spec (product_id, base_curve, diameter, min_sphere, max_sphere, min_cylinder, max_cylinder, status, axis_min)',
@@ -63,7 +69,7 @@ export class ContactLensSpecsController {
   @Delete(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'System Admin hoac Manager xoa contact lens spec' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);

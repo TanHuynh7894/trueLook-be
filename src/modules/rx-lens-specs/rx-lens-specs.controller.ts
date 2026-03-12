@@ -28,7 +28,7 @@ export class RxLensSpecsController {
   @Post()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'System Admin hoac Manager tao rx lens spec' })
   create(@Body() dto: CreateRxLensSpecDto) {
     return this.service.create(dto);
@@ -37,7 +37,7 @@ export class RxLensSpecsController {
   @Get()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'System Admin xem tat ca, Manager chi xem Rx lens spec dang Active (search type, material)',
@@ -51,7 +51,7 @@ export class RxLensSpecsController {
   @Get(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'System Admin xem duoc tat ca status, Manager chi xem duoc status Active',
@@ -65,7 +65,7 @@ export class RxLensSpecsController {
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary:
       'System Admin hoac Manager cap nhat rx lens spec (product_id, type, material, lens_width, min_sphere, max_sphere, min_cylinder, status)',
@@ -77,7 +77,7 @@ export class RxLensSpecsController {
   @Delete(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary: 'System Admin hoac Manager xoa rx lens spec',
   })

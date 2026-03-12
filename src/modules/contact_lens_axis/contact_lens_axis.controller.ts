@@ -23,18 +23,24 @@ export class ContactLensAxisController {
   @Post()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'System Admin hoac Manager tao contact lens axis' })
   create(@Body() dto: CreateContactLensAxisDto) {
     return this.service.create(dto);
   }
 
   @Get()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   findAll() {
     return this.service.findAll();
   }
 
   @Get(':id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   findOne(@Param('id') id: string) {
     return this.service.findOne(Number(id));
   }
@@ -42,9 +48,9 @@ export class ContactLensAxisController {
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
-    summary: 'System Admin hoac Manager cap nhat contact lens axis',
+    summary: 'Operation Staff hoac Manager cap nhat contact lens axis',
   })
   update(@Param('id') id: string, @Body() dto: UpdateContactLensAxisDto) {
     return this.service.update(Number(id), dto);
@@ -53,8 +59,8 @@ export class ContactLensAxisController {
   @Delete(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager xoa contact lens axis' })
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  @ApiOperation({ summary: 'Operation Staff hoac Manager xoa contact lens axis' })
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }

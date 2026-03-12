@@ -28,7 +28,7 @@ export class FrameSpecsController {
   @Post()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'System Admin hoac Manager tao frame spec' })
   create(@Body() dto: CreateFrameSpecDto) {
     return this.service.create(dto);
@@ -37,7 +37,7 @@ export class FrameSpecsController {
   @Get()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary: 'Xem danh sach frame spec',
   })
@@ -50,7 +50,7 @@ export class FrameSpecsController {
   @Get(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({
     summary: 'Xem chi tiet frame spec',
   })
@@ -63,7 +63,7 @@ export class FrameSpecsController {
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'Cap nhat frame spec' })
   update(@Param('id') id: string, @Body() dto: UpdateFrameSpecDto) {
     return this.service.update(id, dto);
@@ -72,7 +72,7 @@ export class FrameSpecsController {
   @Delete(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   @ApiOperation({ summary: 'Chuyen frame spec sang Inactive' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
