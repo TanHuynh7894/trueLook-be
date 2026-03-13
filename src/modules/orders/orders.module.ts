@@ -10,6 +10,7 @@ import { User } from '../users/entities/user.entity';
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
 import { ProductVariant } from '../product_variants/entities/product_variant.entity';
+import { Payment } from '../payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
       Cart,
       CartItem,
       ProductVariant,
+      Payment,
     ]),
   ],
   controllers: [OrdersController],

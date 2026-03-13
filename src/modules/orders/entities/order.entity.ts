@@ -8,6 +8,9 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { OneToMany } from 'typeorm';
+import { OrderDetail } from '../../order_details/entities/order_detail.entity';
+import { Payment } from '../../payments/entities/payment.entity';
 
 @Entity('orders')
 export class Order {
@@ -36,6 +39,10 @@ export class Order {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'customer_id', referencedColumnName: 'id' })
   customer: User;
+  @OneToMany(() => OrderDetail, (detail) => detail.order)
+  orderDetails: OrderDetail[];
+  @OneToMany(() => Payment, (payment) => payment.order)
+  payments: Payment[];
 
   @BeforeInsert()
   generateId() {
@@ -53,4 +60,5 @@ export class Order {
     default: 'Pending'
   })
   status: string;
+  
 }

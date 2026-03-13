@@ -7,6 +7,7 @@ import {
   Check,
 } from 'typeorm';
 import { UserRole } from '../../user_roles/entities/user_role.entity';
+import { Address } from 'src/modules/addresses/entities/address.entity';
 
 @Entity('users')
 @Check(`"status" IN (0, 1)`)
@@ -46,6 +47,9 @@ export class User {
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles: UserRole[];
+
+  @OneToMany(() => Address, (address) => address.user)
+  addresses: Address[];
 
   @BeforeInsert()
   generateId() {

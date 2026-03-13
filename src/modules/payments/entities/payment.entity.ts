@@ -1,7 +1,10 @@
+import { Order } from 'src/modules/orders/entities/order.entity';
 import {
   Entity,
   Column,
   PrimaryColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity('payments')
@@ -49,5 +52,9 @@ export class Payment {
     length: 40,
   })
   order_id: string;
+
+  @ManyToOne(() => Order, (order) => order.payments)
+  @JoinColumn({ name: 'order_id' })
+  order: Order;
 
 }

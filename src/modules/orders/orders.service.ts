@@ -186,13 +186,28 @@ export class OrdersService {
    * FIND ALL
    */
   async findAll() {
-    return this.ordersRepository.find({
-      order: {
-        create_at: 'DESC',
-      },
-    });
-  }
+    const data = await this.ordersRepository
+      .createQueryBuilder('o')
 
+      // orders → users
+      .leftJoinAndSelect('o.customer', 'customer')
+
+      // users → addresses
+      .leftJoinAndSelect('customer.addresses', 'addresses')
+
+      // orders → order_details
+      .leftJoinAndSelect('o.orderDetails', 'orderDetails')
+
+      // order_details → product_variants
+      .leftJoinAndSelect('orderDetails.variant', 'variant')
+
+      // orders → payments
+      .leftJoinAndSelect('o.payments', 'payments')
+
+      .orderBy('o.create_at', 'DESC')
+      .getMany();
+    return data;
+  }
   /**
    * FIND ONE
    */
@@ -302,27 +317,27 @@ export class OrdersService {
 
   async getOrderDetails(orderId: string) {
 
-  const order = await this.ordersRepository.findOne({
-    where: { id: orderId }
-  });
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId }
+    });
 
-  if (!order) {
-    throw new NotFoundException(`Order with id ${orderId} not found`);
+    if (!order) {
+      throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+
+    const orderDetails = await this.orderDetailRepository.find({
+      where: { order_id: orderId }
+    });
+
+    if (orderDetails.length === 0) {
+      throw new NotFoundException('Order has no items');
+    }
+
+    return {
+      order_id: orderId,
+      items: orderDetails
+    };
   }
 
-  const orderDetails = await this.orderDetailRepository.find({
-    where: { order_id: orderId }
-  });
 
-  if (orderDetails.length === 0) {
-    throw new NotFoundException('Order has no items');
-  }
-
-  return {
-    order_id: orderId,
-    items: orderDetails
-  };
-}
-
-  
 }
