@@ -9,13 +9,15 @@ import {
   Query,
   HttpCode,
 } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags, ApiBody } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags, ApiBody, ApiOkResponse } from '@nestjs/swagger';
 
 import { ShippingService } from './shipping.service';
 import { CreateShippingDto } from './dto/create-shipping.dto';
 import { UpdateShippingDto } from './dto/update-shipping.dto';
 
 import { Public } from 'src/common/decorators/public.decorator';
+import { GetDepotsQueryDto } from './dto/get-depots-query.dto';
+import { CreateNhanhOrderDto } from './dto/create-nhanh-order.dto';
 
 @ApiTags('Shipping & Nhanh.vn')
 @Controller('shipping')
@@ -110,6 +112,20 @@ export class ShippingController {
     return this.shippingService.calculateFee(body);
   }
 
+  @Get('nhanh/depots')
+  @ApiOperation({
+    summary: 'Lấy danh sách kho từ Nhanh.vn (chuẩn V2)',
+  })
+  @ApiQuery({
+    name: 'depotId',
+    required: false,
+    type: Number,
+    description: 'ID kho. Bỏ trống để lấy tất cả kho.',
+  })
+  async getDepots(@Query() query: GetDepotsQueryDto) {
+    return await this.shippingService.getDepots(query.depotId);
+  }
+
   /*
   ======================================
   5. TẠO ĐƠN GIAO HÀNG
@@ -117,28 +133,42 @@ export class ShippingController {
   */
 
   @Post('nhanh/create-order')
-  @ApiOperation({
-    summary: 'Tạo đơn giao hàng trên Nhanh.vn',
-  })
-  @ApiBody({
-    description: 'Dữ liệu tạo đơn mẫu (Gửi vào biến data của Nhanh)',
-    schema: {
-      example: {
-        id: "ORDER_123",
-        depotId: 12345,
-        customerName: "Nguyễn Văn A",
-        customerMobile: "0987654321",
-        customerCityName: "Hà Nội",
-        customerDistrictName: "Quận Cầu Giấy",
-        customerAddress: "Số 1, ngõ 2, đường 3",
-        weight: 200,
-        money: 500000
-      }
-    }
-  })
-  async createOrder(@Body() body: any) {
-    return this.shippingService.createOrder(body);
-  }
+@ApiOperation({ summary: 'Tạo đơn giao hàng trên Nhanh.vn' })
+@ApiBody({
+  type: CreateNhanhOrderDto,
+  examples: {
+    testOnly: {
+      summary: 'Tạo đơn test, không book thật',
+      value: {
+        id: 'ORDER_TEST_001',
+        depotId: 230531,
+        type: 'Shipping',
+        status: 'New',
+        customerName: 'Nguyen Van A',
+        customerMobile: '0987654321',
+        customerAddress: '123 Nguyen Hue',
+        customerCityName: 'Hồ Chí Minh',
+        customerDistrictName: 'Quận 1',
+        moneyTransfer: 0,
+        productList: [
+          {
+            id: 'SP001',
+            name: 'San pham test',
+            code: 'SP001',
+            quantity: 1,
+            price: 500000,
+            weight: 200,
+          },
+        ],
+      },
+    },
+  },
+})
+async createNhanhOrder(@Body() body: CreateNhanhOrderDto) {
+  return this.shippingService.createOrder(body);
+}
+
+
 
   /*
   ======================================

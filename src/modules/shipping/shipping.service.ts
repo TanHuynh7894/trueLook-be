@@ -61,7 +61,7 @@ export class ShippingService {
 
   /*
   =====================================================
-  ĐỔI ACCESS CODE -> ACCESS TOKEN (Đồng bộ V2)
+  ĐỔI ACCESS CODE -> ACCESS TOKEN (V2)
   =====================================================
   */
 
@@ -72,10 +72,10 @@ export class ShippingService {
         null,
         {
           params: {
-            version: '2.0', // Đổi về 2.0 cho đồng bộ hệ thống
+            version: '2.0',
             appId: process.env.NHANH_APP_ID,
             secretKey: process.env.NHANH_APP_SECRET,
-            accessCode: accessCode,
+            accessCode,
           },
         },
       );
@@ -100,6 +100,7 @@ export class ShippingService {
       return {
         message: 'Connect Nhanh success',
         token: data.accessToken,
+        businessId: data.businessId,
       };
     } catch (error) {
       console.log('NHANH TOKEN ERROR:');
@@ -129,14 +130,13 @@ export class ShippingService {
 
   /*
   =====================================================
-  LẤY TỈNH / HUYỆN / XÃ (CHUẨN V2)
+  LẤY TỈNH / HUYỆN / XÃ (V2)
   =====================================================
   */
 
   async getLocation(type: string, parentId?: number) {
     const config = await this.getSavedToken();
 
-    // V2 gọi Tỉnh là CITY thay vì PROVINCE
     const queryType = type === 'PROVINCE' ? 'CITY' : type;
 
     const dataPayload: any = {
@@ -150,7 +150,7 @@ export class ShippingService {
     const formPayload = new URLSearchParams();
     formPayload.append('version', '2.0');
     formPayload.append('appId', process.env.NHANH_APP_ID || '');
-    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('businessId', String(config.business_id));
     formPayload.append('accessToken', config.access_token);
     formPayload.append('data', JSON.stringify(dataPayload));
 
@@ -168,14 +168,54 @@ export class ShippingService {
       return response.data;
     } catch (error) {
       console.log('===== NHANH LOCATION ERROR =====');
-      console.log(error.response?.data || error.message);
+      console.log('status =', error.response?.status);
+      console.log('data =', error.response?.data || error.message);
       throw error;
     }
   }
 
   /*
   =====================================================
-  TÍNH PHÍ SHIP (CHUẨN V2)
+  LẤY DANH SÁCH KHO (V2)
+  =====================================================
+  */
+
+  async getDepots(depotId?: number) {
+    const config = await this.getSavedToken();
+
+    const formPayload = new URLSearchParams();
+    formPayload.append('version', '2.0');
+    formPayload.append('appId', process.env.NHANH_APP_ID || '');
+    formPayload.append('businessId', String(config.business_id));
+    formPayload.append('accessToken', config.access_token);
+    formPayload.append(
+      'data',
+      JSON.stringify(depotId ? { depotId: Number(depotId) } : {}),
+    );
+
+    try {
+      const response = await axios.post(
+        'https://pos.open.nhanh.vn/api/store/depot',
+        formPayload,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      console.log('===== NHANH DEPOT ERROR =====');
+      console.log('status =', error.response?.status);
+      console.log('data =', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  /*
+  =====================================================
+  TÍNH PHÍ SHIP (V2)
   =====================================================
   */
 
@@ -185,13 +225,13 @@ export class ShippingService {
     const formPayload = new URLSearchParams();
     formPayload.append('version', '2.0');
     formPayload.append('appId', process.env.NHANH_APP_ID || '');
-    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('businessId', String(config.business_id));
     formPayload.append('accessToken', config.access_token);
-    formPayload.append('data', JSON.stringify(data)); // Nhét cục dữ liệu phí ship vào biến data
+    formPayload.append('data', JSON.stringify(data));
 
     try {
       const response = await axios.post(
-        'https://pos.open.nhanh.vn/api/shipping/fee', // Chuyển về endpoint V2
+        'https://pos.open.nhanh.vn/api/shipping/fee',
         formPayload,
         {
           headers: {
@@ -203,14 +243,15 @@ export class ShippingService {
       return response.data;
     } catch (error) {
       console.log('===== NHANH FEE ERROR =====');
-      console.log(error.response?.data || error.message);
+      console.log('status =', error.response?.status);
+      console.log('data =', error.response?.data || error.message);
       throw error;
     }
   }
 
   /*
   =====================================================
-  TẠO ĐƠN GIAO HÀNG (CHUẨN V2)
+  TẠO ĐƠN GIAO HÀNG (V2)
   =====================================================
   */
 
@@ -220,13 +261,18 @@ export class ShippingService {
     const formPayload = new URLSearchParams();
     formPayload.append('version', '2.0');
     formPayload.append('appId', process.env.NHANH_APP_ID || '');
-    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('businessId', String(config.business_id));
     formPayload.append('accessToken', config.access_token);
-    formPayload.append('data', JSON.stringify(data)); // Nhét dữ liệu tạo đơn vào đây
+    formPayload.append('data', JSON.stringify(data));
 
     try {
+      console.log('===== NHANH CREATE ORDER DATA =====');
+      console.log(data);
+      console.log('===== NHANH CREATE ORDER FORM =====');
+      console.log(formPayload.toString());
+
       const response = await axios.post(
-        'https://pos.open.nhanh.vn/api/order/add', // Endpoint V2 tạo đơn là /order/add
+        'https://pos.open.nhanh.vn/api/order/add',
         formPayload,
         {
           headers: {
@@ -235,11 +281,18 @@ export class ShippingService {
         },
       );
 
+      console.log('===== NHANH CREATE ORDER RESPONSE =====');
+      console.log(response.data);
+
       return response.data;
     } catch (error) {
       console.log('===== NHANH CREATE ORDER ERROR =====');
-      console.log(error.response?.data || error.message);
+      console.log('status =', error.response?.status);
+      console.log('data =', error.response?.data || error.message);
       throw error;
     }
   }
+
+  
+
 }
