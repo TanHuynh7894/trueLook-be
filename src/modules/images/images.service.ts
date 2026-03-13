@@ -11,29 +11,44 @@ import { Image } from './entities/image.entity';
 import { ProductVariant } from '../product_variants/entities/product_variant.entity';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import * as fs from 'fs';
+import { extname } from 'path';
+import { ConfigService } from '@nestjs/config';
+
 
 @Injectable()
 export class ImagesService {
   constructor(
     @InjectRepository(Image)
     private imagesRepository: Repository<Image>,
+    private configService: ConfigService,
     @InjectRepository(ProductVariant)
     private productVariantsRepository: Repository<ProductVariant>,
-  ) {}
+  ) { }
 
   async create(createImageDto: CreateImageDto) {
-    const variant = await this.productVariantsRepository.findOneBy({
-      id: createImageDto.variant_id,
-    });
-    if (!variant) {
-      throw new NotFoundException(
-        `Product variant with id ${createImageDto.variant_id} not found`,
-      );
+
+    if (!createImageDto.variant_id || createImageDto.variant_id === '') {
+      delete createImageDto.variant_id;
+    }
+    if (createImageDto.variant_id) {
+      const variant = await this.productVariantsRepository.findOneBy({
+        id: createImageDto.variant_id,
+      });
+
+      if (!variant) {
+        throw new NotFoundException(
+          `Product variant with id ${createImageDto.variant_id} not found`,
+        );
+      }
     }
 
     const newImage = this.imagesRepository.create(createImageDto);
+
     const saved = await this.imagesRepository.save(newImage);
+
     await this.syncImagesSnapshot();
+
     return saved;
   }
 
@@ -92,7 +107,7 @@ export class ImagesService {
     const content = `// Auto-generated from DB by ImagesService. Do not edit manually.
 export type ImageDataSnapshot = {
   id: string;
-  variant_id: string;
+  variant_id: string | null;
   path: string;
 };
 
@@ -113,5 +128,82 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(snapsho
         'Khong the dong bo file snapshot images',
       );
     }
+  }
+
+  async uploadImage(file, dto, roles) {
+    
+    let folder = '';
+
+    if (roles.includes('Operation Staff') || roles.includes('Customer'))  {
+      folder = join(process.cwd(), 'uploads/images');
+    } else {
+      folder = join(process.cwd(), 'src/uploads');
+    }
+
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+    }
+
+    const filename = Date.now() + extname(file.originalname);
+    const path = join(folder, filename);
+
+
+    dto.path = file.path;
+
+    return this.create(dto);
+  }
+
+  async getImagePathById(id: string): Promise<string | null> {
+
+    const image = await this.imagesRepository.findOne({
+      where: { id }
+    });
+
+    if (!image) {
+      return null;
+    }
+
+    const filepath = image.path;
+
+    if (!fs.existsSync(filepath)) {
+      return null;
+    }
+
+    return filepath;
+  }
+  async deleteImage(id: string) {
+
+    const image = await this.imagesRepository.findOne({
+      where: { id }
+    });
+
+    if (!image) {
+      throw new NotFoundException(`Image with id ${id} not found`);
+    }
+
+    const filepath = join(process.cwd(), 'src/uploads', image.path);
+
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+
+    await this.imagesRepository.delete(id);
+
+    return {
+      message: 'Image deleted successfully'
+    };
+  }
+
+  async getAllImages() {
+
+    const baseUrl = this.configService.get<string>('BASE_URL');
+
+    const images = await this.imagesRepository.find();
+
+    return images.map(img => ({
+      id: img.id,
+      variant_id: img.variant_id,
+      image_url: `${baseUrl}/images/${img.id}`
+    }));
   }
 }
