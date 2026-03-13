@@ -11,18 +11,17 @@ import { UpdateShippingDto } from './dto/update-shipping.dto';
 
 @Injectable()
 export class ShippingService {
-
   constructor(
     @InjectRepository(Shipping)
     private shippingRepo: Repository<Shipping>,
 
     @InjectRepository(NhanhConfig)
     private nhanhRepo: Repository<NhanhConfig>,
-  ) { }
+  ) {}
 
   /*
   =============================
-  CRUD SHIPPING
+  CRUD SHIPPING NỘI BỘ
   =============================
   */
 
@@ -62,20 +61,18 @@ export class ShippingService {
 
   /*
   =====================================================
-  ĐỔI ACCESS CODE -> ACCESS TOKEN (OAUTH V3)
+  ĐỔI ACCESS CODE -> ACCESS TOKEN (Đồng bộ V2)
   =====================================================
   */
 
   async getAccessToken(accessCode: string) {
-
     try {
-
       const response = await axios.post(
         'https://pos.open.nhanh.vn/api/oauth/access_token',
         null,
         {
           params: {
-            version: '3.0',
+            version: '2.0', // Đổi về 2.0 cho đồng bộ hệ thống
             appId: process.env.NHANH_APP_ID,
             secretKey: process.env.NHANH_APP_SECRET,
             accessCode: accessCode,
@@ -83,7 +80,7 @@ export class ShippingService {
         },
       );
 
-      console.log("NHANH TOKEN RESPONSE:");
+      console.log('NHANH TOKEN RESPONSE:');
       console.log(response.data);
 
       if (response.data.code !== 1) {
@@ -101,15 +98,12 @@ export class ShippingService {
       await this.nhanhRepo.save(config);
 
       return {
-        message: "Connect Nhanh success",
+        message: 'Connect Nhanh success',
         token: data.accessToken,
       };
-
     } catch (error) {
-
-      console.log("NHANH TOKEN ERROR:");
+      console.log('NHANH TOKEN ERROR:');
       console.log(error.response?.data || error.message);
-
       throw error;
     }
   }
@@ -121,7 +115,6 @@ export class ShippingService {
   */
 
   async getSavedToken() {
-
     const token = await this.nhanhRepo.find({
       order: { id: 'DESC' },
       take: 1,
@@ -136,133 +129,116 @@ export class ShippingService {
 
   /*
   =====================================================
-  LẤY TỈNH / HUYỆN / XÃ
+  LẤY TỈNH / HUYỆN / XÃ (CHUẨN V2)
   =====================================================
   */
 
   async getLocation(type: string, parentId?: number) {
-
-  const config = await this.getSavedToken();
-
-  const filters: any = {
-    locationVersion: "v1",
-    type: type
-  };
-
-  if (parentId) {
-    filters.parentId = Number(parentId);
-  }
-
-  const payload = {
-    filters: filters
-  };
-
-  const key = `${JSON.stringify(filters)}`;
-  console.log("CACHE KEY:", key);
-
-  try {
-
-    const response = await axios.post(
-      "https://pos.open.nhanh.vn/v3.0/shipping/location",
-      payload,
-      {
-        params: {
-          version: 'v3',
-          appId: process.env.NHANH_APP_ID,
-          businessId: config.business_id
-        },
-        headers: {
-          Authorization: config.access_token,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    return response.data;
-
-  } catch (error) {
-
-    console.log("===== NHANH LOCATION ERROR =====");
-    console.log(error.response?.data || error.message);
-
-    throw error;
-  }
-}
-
-  /*
-  =====================================================
-  TÍNH PHÍ SHIP
-  =====================================================
-  */
-
-  async calculateFee(data: any) {
-
     const config = await this.getSavedToken();
 
-    try {
+    // V2 gọi Tỉnh là CITY thay vì PROVINCE
+    const queryType = type === 'PROVINCE' ? 'CITY' : type;
 
+    const dataPayload: any = {
+      type: queryType,
+    };
+
+    if (parentId) {
+      dataPayload.parentId = Number(parentId);
+    }
+
+    const formPayload = new URLSearchParams();
+    formPayload.append('version', '2.0');
+    formPayload.append('appId', process.env.NHANH_APP_ID || '');
+    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('accessToken', config.access_token);
+    formPayload.append('data', JSON.stringify(dataPayload));
+
+    try {
       const response = await axios.post(
-        'https://pos.open.nhanh.vn/v3.0/shipping/fee',
-        { filters: data },
+        'https://pos.open.nhanh.vn/api/shipping/location',
+        formPayload,
         {
-          params: {
-            version: '3.0',
-            appId: process.env.NHANH_APP_ID,
-            businessId: config.business_id,
-          },
           headers: {
-            Authorization: config.access_token,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
         },
       );
 
       return response.data;
-
     } catch (error) {
-
-      console.log('===== NHANH FEE ERROR =====');
+      console.log('===== NHANH LOCATION ERROR =====');
       console.log(error.response?.data || error.message);
-
       throw error;
     }
   }
 
   /*
   =====================================================
-  TẠO ĐƠN GIAO HÀNG
+  TÍNH PHÍ SHIP (CHUẨN V2)
   =====================================================
   */
 
-  async createOrder(data: any) {
-
+  async calculateFee(data: any) {
     const config = await this.getSavedToken();
 
-    try {
+    const formPayload = new URLSearchParams();
+    formPayload.append('version', '2.0');
+    formPayload.append('appId', process.env.NHANH_APP_ID || '');
+    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('accessToken', config.access_token);
+    formPayload.append('data', JSON.stringify(data)); // Nhét cục dữ liệu phí ship vào biến data
 
+    try {
       const response = await axios.post(
-        'https://pos.open.nhanh.vn/v3.0/order/create',
-        { filters: data },
+        'https://pos.open.nhanh.vn/api/shipping/fee', // Chuyển về endpoint V2
+        formPayload,
         {
-          params: {
-            version: '3.0',
-            appId: process.env.NHANH_APP_ID,
-            businessId: config.business_id,
-          },
           headers: {
-            Authorization: config.access_token,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
         },
       );
 
       return response.data;
-
     } catch (error) {
+      console.log('===== NHANH FEE ERROR =====');
+      console.log(error.response?.data || error.message);
+      throw error;
+    }
+  }
 
+  /*
+  =====================================================
+  TẠO ĐƠN GIAO HÀNG (CHUẨN V2)
+  =====================================================
+  */
+
+  async createOrder(data: any) {
+    const config = await this.getSavedToken();
+
+    const formPayload = new URLSearchParams();
+    formPayload.append('version', '2.0');
+    formPayload.append('appId', process.env.NHANH_APP_ID || '');
+    formPayload.append('businessId', config.business_id.toString());
+    formPayload.append('accessToken', config.access_token);
+    formPayload.append('data', JSON.stringify(data)); // Nhét dữ liệu tạo đơn vào đây
+
+    try {
+      const response = await axios.post(
+        'https://pos.open.nhanh.vn/api/order/add', // Endpoint V2 tạo đơn là /order/add
+        formPayload,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      return response.data;
+    } catch (error) {
       console.log('===== NHANH CREATE ORDER ERROR =====');
       console.log(error.response?.data || error.message);
-
       throw error;
     }
   }
