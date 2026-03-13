@@ -1,63 +1,130 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import type { Request } from 'express';
+
 import { ImagesService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 
-@ApiTags('Images')
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { ApiExcludeController, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Delete, NotFoundException, Get, Param, Res } from '@nestjs/common';
+import type { Response } from 'express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
 @Controller('images')
 export class ImagesController {
-  constructor(private readonly imagesService: ImagesService) {}
+  constructor(private readonly imagesService: ImagesService) { }
 
-  @Post()
+  @Post('upload')
   @ApiBearerAuth('access-token')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
-  @ApiOperation({
-    summary:
-      'System Admin hoac Manager upload anh variant (truyen variant_id va path)',
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        variant_id: {
+          type: 'string',
+          example: '1772179859988',
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
   })
-  create(@Body() createImageDto: CreateImageDto) {
-    return this.imagesService.create(createImageDto);
-  }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
 
-  @Get()
-  findAll() {
-    return this.imagesService.findAll();
+          console.log("USER:", req.user);
+
+          const roles = (req.user as any)?.roles || [];
+
+          console.log("ROLES:", roles);
+
+          let uploadPath = 'src/uploads';
+
+          if (roles.includes('Operation Staff') || roles.includes('Customer')) {
+            uploadPath = 'uploads/images';
+          }
+
+          console.log("UPLOAD PATH:", uploadPath);
+
+          cb(null, uploadPath);
+        }
+        ,
+        filename: (req, file, cb) => {
+          const uniqueName = Date.now() + extname(file.originalname);
+          cb(null, uniqueName);
+        },
+      }),
+    }),
+  )
+  upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateImageDto,
+    @Req() req: Request,
+  ) {
+    const roles = (req.user as any)?.roles || [];
+
+    return this.imagesService.uploadImage(file, dto, roles);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imagesService.findOne(id);
-  }
-
-  @Patch(':id')
+  @ApiOperation({ summary: 'Get an image by id' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager cap nhat anh theo id' })
-  update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
-    return this.imagesService.update(id, updateImageDto);
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  async getImage(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+
+    const filepath = await this.imagesService.getImagePathById(id);
+
+    if (!filepath) {
+      return res.status(404).json({
+        message: 'Image not found'
+      });
+    }
+
+    return res.sendFile(filepath);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete an image' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager')
-  @ApiOperation({ summary: 'System Admin hoac Manager xoa anh theo id' })
-  remove(@Param('id') id: string) {
-    return this.imagesService.remove(id);
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  async deleteImage(@Param('id') id: string) {
+    return this.imagesService.deleteImage(id);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all images' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  getAllImages() {
+    return this.imagesService.getAllImages();
   }
 }
