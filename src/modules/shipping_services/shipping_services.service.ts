@@ -50,4 +50,8 @@ export class ShippingServicesService {
       statusCode: 200,
     };
   }
+
+  async findByCode(code: string) {
+  return await this.shippingServicesRepository.findOne({ where: { service_code: code } });
+}
 }

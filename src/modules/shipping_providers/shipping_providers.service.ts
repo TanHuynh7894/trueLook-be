@@ -56,4 +56,8 @@ export class ShippingProvidersService {
       statusCode: 200,
     };
   }
+
+  async findByCode(code: string) {
+  return await this.shippingProvidersRepository.findOne({ where: { code } }); 
+}
 }

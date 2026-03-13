@@ -50,4 +50,10 @@ export class Shipping {
 
   @Column({ length: 15, nullable: true })
   service_id: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  nhanh_id: string;
+
+  @Column({ type: 'text', nullable: true })
+  tracking_url: string;
 }
