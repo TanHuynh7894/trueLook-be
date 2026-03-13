@@ -78,7 +78,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Lay chi tiet order' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff' , 'Customer')
   getOrderDetails(@Param('id') id: string) {
     return this.ordersService.getOrderDetails(id);
   }
