@@ -36,7 +36,6 @@ export class ShippingService {
   }
 
   async findOne(id: string): Promise<Shipping> {
-
     const shipping = await this.shippingRepo.findOneBy({ id });
 
     if (!shipping) {
@@ -47,18 +46,13 @@ export class ShippingService {
   }
 
   async update(id: string, dto: UpdateShippingDto): Promise<Shipping> {
-
     const shipping = await this.findOne(id);
-
     const updated = Object.assign(shipping, dto);
-
     return await this.shippingRepo.save(updated);
   }
 
   async remove(id: string): Promise<{ message: string }> {
-
     const shipping = await this.findOne(id);
-
     await this.shippingRepo.remove(shipping);
 
     return {
@@ -68,11 +62,12 @@ export class ShippingService {
 
   /*
   =====================================================
-  LẤY ACCESS TOKEN TỪ ACCESS CODE (NHANH OAUTH V3)
+  ĐỔI ACCESS CODE -> ACCESS TOKEN (OAUTH V3)
   =====================================================
   */
 
   async getAccessToken(accessCode: string) {
+
     try {
 
       const response = await axios.post(
@@ -88,14 +83,14 @@ export class ShippingService {
         },
       );
 
-      console.log('===== NHANH RESPONSE =====');
+      console.log("NHANH TOKEN RESPONSE:");
       console.log(response.data);
 
-      const data = response.data;
-
-      if (!data || data.code !== 1) {
-        throw new Error('Nhanh OAuth thất bại');
+      if (response.data.code !== 1) {
+        throw new Error(response.data.messages);
       }
+
+      const data = response.data;
 
       const config = this.nhanhRepo.create({
         access_token: data.accessToken,
@@ -106,13 +101,13 @@ export class ShippingService {
       await this.nhanhRepo.save(config);
 
       return {
-        message: 'Kết nối Nhanh thành công',
-        data,
+        message: "Connect Nhanh success",
+        token: data.accessToken,
       };
 
     } catch (error) {
 
-      console.log('===== NHANH ERROR =====');
+      console.log("NHANH TOKEN ERROR:");
       console.log(error.response?.data || error.message);
 
       throw error;
@@ -121,7 +116,7 @@ export class ShippingService {
 
   /*
   =====================================================
-  LẤY TOKEN MỚI NHẤT TỪ DATABASE
+  LẤY TOKEN MỚI NHẤT
   =====================================================
   */
 
@@ -141,97 +136,133 @@ export class ShippingService {
 
   /*
   =====================================================
-  GỌI API NHANH (VÍ DỤ: LẤY DANH SÁCH ĐƠN)
+  LẤY TỈNH / HUYỆN / XÃ
   =====================================================
   */
 
-  async getNhanhOrders() {
+  async getLocation(type: string, parentId?: number) {
 
-    const config = await this.getSavedToken();
+  const config = await this.getSavedToken();
+
+  const filters: any = {
+    locationVersion: "v1",
+    type: type
+  };
+
+  if (parentId) {
+    filters.parentId = Number(parentId);
+  }
+
+  const payload = {
+    filters: filters
+  };
+
+  const key = `${JSON.stringify(filters)}`;
+  console.log("CACHE KEY:", key);
+
+  try {
 
     const response = await axios.post(
-      'https://pos.open.nhanh.vn/api/order/index',
+      "https://pos.open.nhanh.vn/v3.0/shipping/location",
+      payload,
       {
-        version: '3.0',
-        businessId: config.business_id,
-        accessToken: config.access_token,
-      },
+        params: {
+          version: 'v3',
+          appId: process.env.NHANH_APP_ID,
+          businessId: config.business_id
+        },
+        headers: {
+          Authorization: config.access_token,
+          "Content-Type": "application/json"
+        }
+      }
     );
 
     return response.data;
+
+  } catch (error) {
+
+    console.log("===== NHANH LOCATION ERROR =====");
+    console.log(error.response?.data || error.message);
+
+    throw error;
   }
+}
 
   /*
-=====================================================
-LẤY DANH SÁCH KHO TỪ NHANH
-=====================================================
-*/
+  =====================================================
+  TÍNH PHÍ SHIP
+  =====================================================
+  */
 
-  async getDepotList() {
+  async calculateFee(data: any) {
 
     const config = await this.getSavedToken();
-
-    const payload = {
-      version: '3.0',
-      businessId: config.business_id,
-      accessToken: config.access_token,
-    };
-
-    const response = await axios.post(
-      'https://pos.open.nhanh.vn/api/depot/index',
-      new URLSearchParams({
-        data: JSON.stringify(payload),
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      },
-    );
-
-    return response.data;
-  }
-
-  async getLocation(type: string, parentId?: number) {
-    const config = await this.getSavedToken();
-
-    // 1. Dựng Body y hệt cái cURL gốc của ba (chỉ có filters, không có version ngoài cùng)
-    const requestData: any = {
-      filters: {
-        locationVersion: 'v1',
-        type: type,
-      }
-    };
-    
-    // Chỉ nhét parentId vào khi cần lấy Quận/Huyện hoặc Phường/Xã
-    if (parentId) {
-      requestData.filters.parentId = Number(parentId); 
-    }
-
-    // [Gỡ lỗi] In ra log để ba check xem có bị thiếu appId trong file .env không nha
-    console.log(`[Nhanh API] Gửi yêu cầu lấy địa điểm: ${type}`);
-    console.log(`[Nhanh API] AppID: ${process.env.NHANH_APP_ID} | BusinessID: ${config.business_id}`);
 
     try {
+
       const response = await axios.post(
-        'https://pos.open.nhanh.vn/v3.0/shipping/location',
-        requestData, // Ném đúng cục requestData vào đây
+        'https://pos.open.nhanh.vn/v3.0/shipping/fee',
+        { filters: data },
         {
           params: {
-            appId: process.env.NHANH_APP_ID, 
+            version: '3.0',
+            appId: process.env.NHANH_APP_ID,
             businessId: config.business_id,
           },
           headers: {
-            'Authorization': config.access_token, // Header y xì cURL
+            Authorization: config.access_token,
             'Content-Type': 'application/json',
           },
         },
       );
 
       return response.data;
+
     } catch (error) {
-      console.log('===== NHANH LOCATION ERROR =====');
+
+      console.log('===== NHANH FEE ERROR =====');
       console.log(error.response?.data || error.message);
+
+      throw error;
+    }
+  }
+
+  /*
+  =====================================================
+  TẠO ĐƠN GIAO HÀNG
+  =====================================================
+  */
+
+  async createOrder(data: any) {
+
+    const config = await this.getSavedToken();
+
+    try {
+
+      const response = await axios.post(
+        'https://pos.open.nhanh.vn/v3.0/order/create',
+        { filters: data },
+        {
+          params: {
+            version: '3.0',
+            appId: process.env.NHANH_APP_ID,
+            businessId: config.business_id,
+          },
+          headers: {
+            Authorization: config.access_token,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      return response.data;
+
+    } catch (error) {
+
+      console.log('===== NHANH CREATE ORDER ERROR =====');
+      console.log(error.response?.data || error.message);
+
       throw error;
     }
   }
