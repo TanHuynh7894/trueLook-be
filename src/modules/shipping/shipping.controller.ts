@@ -133,108 +133,156 @@ export class ShippingController {
   */
 
   @Post('nhanh/create-order')
-@ApiOperation({ summary: 'Tạo đơn giao hàng trên Nhanh.vn' })
-@ApiBody({
-  type: CreateNhanhOrderDto,
-  examples: {
-    testOnly: {
-      summary: 'Tạo đơn test, không book thật',
-      value: {
-        id: 'ORDER_TEST_001',
-        depotId: 230531,
-        type: 'Shipping',
-        status: 'New',
-        customerName: 'Nguyen Van A',
-        customerMobile: '0987654321',
-        customerAddress: '123 Nguyen Hue',
-        customerCityName: 'Hồ Chí Minh',
-        customerDistrictName: 'Quận 1',
-        moneyTransfer: 0,
-        productList: [
-          {
-            id: 'SP001',
-            name: 'San pham test',
-            code: 'SP001',
-            quantity: 1,
-            price: 500000,
-            weight: 200,
-          },
-        ],
+  @ApiOperation({ summary: 'Tạo đơn giao hàng trên Nhanh.vn' })
+  @ApiBody({
+    type: CreateNhanhOrderDto, // Nhớ đảm bảo DTO của ông khớp với các trường này nha
+    examples: {
+      testOnly: {
+        summary: 'Tạo đơn test, không book thật',
+        value: {
+          id: 'ORDER_TEST_003',
+          carrierId: 9,
+          carrierName: "J&T Express",
+          serviceId: 1,
+          serviceName: "Giao hàng tiêu chuẩn",
+          depotId: 230531,
+          customerName: 'Nguyen Van A',
+          customerMobile: '0987654321',
+          customerAddress: '123 Nguyen Hue',
+          customerCityName: 'Hồ Chí Minh',
+          customerDistrictName: 'Quận 1',
+          moneyTransfer: 0,
+          productList: [
+            {
+              id: 'SP001',
+              name: 'San pham test',
+              code: 'SP001',
+              quantity: 1,
+              price: 500000,
+              weight: 200,
+            },
+          ],
+        },
       },
     },
-  },
-})
-async createNhanhOrder(@Body() body: CreateNhanhOrderDto) {
-  return this.shippingService.createOrder(body);
-}
+  })
+  async createNhanhOrder(@Body() body: any) {
+    // Chỉ việc gọi cái hàm vạn năng mình vừa viết
+    return this.shippingService.saveAllDataToDb(body);
+  
+  }
+
+  @Post('nhanh/orders')
+  @ApiOperation({ summary: 'Lấy danh sách đơn hàng từ Nhanh.vn (Tra cứu/Đồng bộ)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        fromDate: { type: 'string', description: 'Từ ngày (YYYY-MM-DD)' },
+        toDate: { type: 'string', description: 'Đến ngày (YYYY-MM-DD)' },
+        type: { type: 'string', description: 'Loại đơn (Shipping, Shopee, Lazada...)' },
+        status: { type: 'string', description: 'Trạng thái (New, Pickup, Success...)' }
+      },
+      example: {
+        fromDate: '2025-03-13',
+        toDate: '2025-03-22',
+      },
+    },
+  })
+  async getNhanhOrders(@Body() body: any) {
+    return this.shippingService.getNhanhOrders(body);
+  }
 
 
+  @Post('nhanh/update-order')
+  @ApiOperation({ summary: 'Cập nhật trạng thái đơn hàng trên Nhanh.vn' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'ID đơn hàng nội bộ (VD: ORDER_TEST_001)' },
+        status: { type: 'string', description: 'Trạng thái muốn cập nhật (VD: Success, Aborted, Returned...)' }
+      },
+      example: {
+        id: 'ORDER_TEST_001',
+        status: 'Success',
+      },
+    },
+  })
+  async updateNhanhOrder(@Body() body: any) {
+    return this.shippingService.updateNhanhOrder(body);
+  }
 
   /*
   ======================================
   6. WEBHOOK NHẬN TRẠNG THÁI
   ======================================
   */
-
   @Public()
   @Post('webhook')
-  @HttpCode(200)
-  @ApiOperation({
-    summary: 'Webhook nhận trạng thái giao hàng từ Nhanh.vn',
-  })
-  async shippingWebhook(@Body() body: any) {
-    console.log('===== NHANH WEBHOOK =====');
-    console.log(body);
-    // Xử lý logic cập nhật trạng thái đơn hàng nội bộ ở đây
-    return { ok: true };
+  async handleWebhook(@Body() payload: any) {
+    console.log('===== NHANH WEBHOOK GÕ CỬA =====');
+    const eventType = payload.event; // Lấy loại sự kiện
+
+    switch (eventType) {
+      case 'orderUpdate': // Hoặc 'orderStatusChange' tùy Nhanh.vn
+      case 'orderAdd':
+        const orderId = payload.data?.orderId || payload.orderId;
+        const status = payload.data?.status || payload.status;
+        
+        if (orderId && status) {
+          await this.shippingService.updateStatusFromWebhook(orderId, status);
+          console.log(`[Order] Đã cập nhật đơn ${orderId} sang: ${status}`);
+        }
+        break;
+
+      case 'inventoryChange':
+        console.log('[Inventory] Kho hàng vừa thay đổi, ông có muốn trừ kho trong DB mình luôn không?');
+        // Logic xử lý trừ tồn kho nội bộ ở đây nếu cần
+        break;
+
+      default:
+        console.log(`[Webhook] Nhận sự kiện lạ: ${eventType}`);
+    }
+
+    return { code: 1, message: 'Success' };
   }
+  // @Public()
+  // @Post('webhook')
+  // @HttpCode(200)
+  // @ApiOperation({
+  //   summary: 'Webhook nhận trạng thái giao hàng từ Nhanh.vn',
+  // })
+  // async shippingWebhook(@Body() body: any) {
+  //   console.log('===== NHANH WEBHOOK =====');
+  //   console.log(body);
+  //   // Xử lý logic cập nhật trạng thái đơn hàng nội bộ ở đây
+  //   return { ok: true };
+  // }
 
-  /*
-  ======================================
-  7. CRUD SHIPPING NỘI BỘ (Để cuối file)
-  ======================================
-  */
-
-  @Post()
-  @ApiOperation({
-    summary: 'Tạo vận đơn nội bộ',
+  @Post('checkout')
+  @ApiOperation({ summary: 'Tạo đơn nội bộ & Book ship tự động qua Nhanh.vn' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        orderId: { type: 'string', description: 'ID đơn hàng (VD: ORDER_001)' },
+        providerId: { type: 'string', description: 'ID Hãng vận chuyển (trong DB nội bộ, VD: "5" cho J&T)' },
+        serviceId: { type: 'string', description: 'ID Gói cước (trong DB nội bộ, VD: "7" cho Giao chuẩn)' },
+        nhanhPayload: { 
+          type: 'object', 
+          description: 'Cục data JSON chứa thông tin khách, địa chỉ, cân nặng (y như gửi Postman)' 
+        }
+      }
+    }
   })
-  create(@Body() createShippingDto: CreateShippingDto) {
-    return this.shippingService.create(createShippingDto);
-  }
-
-  @Get()
-  @ApiOperation({
-    summary: 'Lấy danh sách vận đơn nội bộ',
-  })
-  findAll() {
-    return this.shippingService.findAll();
-  }
-
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Lấy chi tiết vận đơn theo ID',
-  })
-  findOne(@Param('id') id: string) {
-    return this.shippingService.findOne(id);
-  }
-
-  @Patch(':id')
-  @ApiOperation({
-    summary: 'Cập nhật vận đơn nội bộ',
-  })
-  update(
-    @Param('id') id: string,
-    @Body() updateShippingDto: UpdateShippingDto,
-  ) {
-    return this.shippingService.update(id, updateShippingDto);
-  }
-
-  @Delete(':id')
-  @ApiOperation({
-    summary: 'Xóa vận đơn nội bộ',
-  })
-  remove(@Param('id') id: string) {
-    return this.shippingService.remove(id);
+  async checkoutShipping(@Body() body: any) {
+    const { orderId, providerId, serviceId, nhanhPayload } = body;
+    return this.shippingService.processCheckoutShipping(
+      orderId, 
+      providerId, 
+      serviceId, 
+      nhanhPayload
+    );
   }
 }
