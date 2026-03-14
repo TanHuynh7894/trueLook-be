@@ -1,10 +1,15 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
+  Query,
   Logger,
   HttpCode,
+  Res
 } from '@nestjs/common';
+
+import type { Response } from 'express';
 
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -16,7 +21,7 @@ export class PaymentsController {
 
   constructor(
     private readonly paymentService: PaymentsService
-  ) { }
+  ) {}
 
   /**
    * CREATE PAYMENT
@@ -64,6 +69,44 @@ export class PaymentsController {
       };
 
     }
+
+  }
+
+  /**
+   * PAYMENT SUCCESS REDIRECT
+   */
+  @Get('success')
+  async paymentSuccess(
+    @Query() query: any,
+    @Res() res: Response
+  ) {
+
+    this.logger.log('====== PAYMENT SUCCESS REDIRECT ======');
+    this.logger.log(query);
+
+    return res.json({
+      message: "Payment success",
+      data: query
+    });
+
+  }
+
+  /**
+   * PAYMENT CANCEL REDIRECT
+   */
+  @Get('cancel')
+  async paymentCancel(
+    @Query() query: any,
+    @Res() res: Response
+  ) {
+
+    this.logger.warn('====== PAYMENT CANCEL REDIRECT ======');
+    this.logger.warn(query);
+
+    return res.json({
+      message: "Payment cancelled",
+      data: query
+    });
 
   }
 

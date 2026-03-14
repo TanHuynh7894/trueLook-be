@@ -13,6 +13,7 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
 import { Promotion } from '../promotions/entities/promotion.entity';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Promotion } from '../promotions/entities/promotion.entity';
       CartItem,
       Promotion,
     ]),
+    OrdersModule,
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService],

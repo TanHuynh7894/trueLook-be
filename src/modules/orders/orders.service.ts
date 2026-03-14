@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Logger,Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto, UpdateOrderStatusDto } from './dto/update-order.dto';
@@ -11,9 +11,11 @@ import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
 import { ProductVariant } from '../product_variants/entities/product_variant.entity';
 import { OrderDetail } from '../order_details/entities/order_detail.entity';
-
+import { Payment } from '../payments/entities/payment.entity';
 @Injectable()
 export class OrdersService {
+
+  private readonly logger = new Logger(OrdersService.name);
 
   constructor(
     @InjectRepository(Order)
@@ -33,6 +35,9 @@ export class OrdersService {
 
     @InjectRepository(OrderDetail)
     private orderDetailRepository: Repository<OrderDetail>,
+
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
 
     private dataSource: DataSource,
   ) { }
@@ -76,6 +81,7 @@ export class OrdersService {
         customer_id: createOrderDto.customer_id,
         total: 0,
         extra_fee: createOrderDto.extra_fee,
+        status: "Pending",
       });
 
       const savedOrder = await manager.save(newOrder);
@@ -122,38 +128,101 @@ export class OrdersService {
 
     return await this.dataSource.transaction(async manager => {
 
+      this.logger.log(`===== CONFIRM ORDER START =====`);
+      this.logger.log(`OrderId: ${orderId}`);
+
       const order = await manager.findOne(Order, {
         where: { id: orderId },
       });
 
       if (!order) {
+        this.logger.error(`Order ${orderId} not found`);
         throw new NotFoundException(`Order with id ${orderId} not found`);
       }
 
+      this.logger.log(`Order found: status=${order.status}, total=${order.total}`);
+
+      /**
+       * GET PAYMENT
+       */
+      const payment = await manager.findOne(Payment, {
+        where: {
+          order_id: orderId,
+          status: "Completed",
+        },
+      });
+
+      if (!payment) {
+        this.logger.error(`Payment not completed for order ${orderId}`);
+        throw new BadRequestException("Payment not completed");
+      }
+
+      this.logger.log(`Payment found: amount=${payment.amount}`);
+
+      /**
+       * PREVENT DOUBLE WEBHOOK
+       */
+      if (order.total === payment.amount && order.status === "Pending") {
+
+        this.logger.warn(`Order ${orderId} already processed`);
+
+        return {
+          message: "Order already processed",
+          order_id: orderId
+        };
+      }
+
+      /**
+       * UPDATE ORDER
+       */
+      this.logger.log(`Updating order status to Pending`);
+
+      order.total = payment.amount;
+      order.status = "Pending";
+
+      await manager.save(order);
+
+      /**
+       * GET ORDER DETAILS
+       */
       const orderDetails = await manager.find(OrderDetail, {
         where: { order_id: orderId },
       });
 
+      this.logger.log(`OrderDetails count: ${orderDetails.length}`);
+
       if (orderDetails.length === 0) {
+        this.logger.error(`Order ${orderId} has no items`);
         throw new BadRequestException('Order has no items');
       }
 
       /**
-       * update stock
+       * UPDATE STOCK
        */
       for (const item of orderDetails) {
+
+        this.logger.log(`Processing variant ${item.variant_id}`);
+        this.logger.log(`Order quantity: ${item.quantity}`);
 
         const variant = await manager.findOne(ProductVariant, {
           where: { id: item.variant_id },
         });
 
         if (!variant) {
+          this.logger.error(`Variant ${item.variant_id} not found`);
           throw new NotFoundException(
             `Variant with id ${item.variant_id} not found`,
           );
         }
 
+        this.logger.log(`Current stock: ${variant.quantity}`);
+
         if (variant.quantity < item.quantity) {
+
+          this.logger.error(
+            `Stock not enough: stock=${variant.quantity}, order=${item.quantity}`
+          );
+
           throw new BadRequestException(
             `Product ${variant.name} not enough stock`,
           );
@@ -161,27 +230,35 @@ export class OrdersService {
 
         variant.quantity -= item.quantity;
 
+        this.logger.log(`New stock after update: ${variant.quantity}`);
+
         await manager.save(variant);
       }
 
       /**
-       * clear cart
+       * CLEAR CART
        */
       const cart = await manager.findOne(Cart, {
         where: { user_id: order.customer_id },
       });
 
       if (cart) {
+
+        this.logger.log(`Clearing cart ${cart.id}`);
+
         await manager.delete(CartItem, { cart_id: cart.id });
       }
+
+      this.logger.log(`===== ORDER CONFIRMED SUCCESS =====`);
 
       return {
         message: "Order confirmed",
         order_id: orderId,
+        amount_paid: payment.amount
       };
+
     });
   }
-
   /**
    * FIND ALL
    */

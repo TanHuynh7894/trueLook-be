@@ -11,6 +11,7 @@ import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../cart_items/entities/cart_item.entity';
 import { Transition } from '../transitions/entities/transition.entity';
 import { Promotion } from '../promotions/entities/promotion.entity';
+import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class PaymentsService {
@@ -45,6 +46,8 @@ export class PaymentsService {
 
     @InjectRepository(Promotion)
     private promotionRepo: Repository<Promotion>,
+
+    private ordersService: OrdersService,
 
   ) {
 
@@ -108,6 +111,20 @@ export class PaymentsService {
       throw new NotFoundException("Order not found");
     }
 
+    /**
+     * PREVENT MULTIPLE PAYMENT
+     */
+    const existingPayment = await this.paymentRepo.findOne({
+      where: {
+        order_id: orderId,
+        status: "Pending"
+      }
+    });
+
+    if (existingPayment) {
+      throw new Error("Payment already exists for this order");
+    }
+
     const totalAmount = Number(order.total);
 
     if (isNaN(totalAmount) || totalAmount <= 0) {
@@ -135,6 +152,9 @@ export class PaymentsService {
 
     }
 
+    /**
+     * FINAL AMOUNT
+     */
     const finalAmount = totalAmount - discount;
 
     if (finalAmount < 0) {
@@ -142,11 +162,17 @@ export class PaymentsService {
     }
 
     /**
-     * CASE: ORDER FREE (100% DISCOUNT)
+     * UPDATE ORDER TOTAL
+     */
+    order.total = finalAmount;
+    await this.orderRepo.save(order);
+
+    /**
+     * CASE: FREE ORDER
      */
     if (finalAmount === 0) {
 
-      await this.confirmOrder(orderId);
+      await this.ordersService.confirmOrder(orderId);
 
       return {
         message: "Order paid by promotion",
@@ -157,7 +183,10 @@ export class PaymentsService {
 
     }
 
-    const orderCode = Date.now();
+    /**
+     * GENERATE ORDER CODE
+     */
+    const orderCode = Date.now() + Math.floor(Math.random() * 1000);
 
     /**
      * SAVE PAYMENT
@@ -256,68 +285,11 @@ export class PaymentsService {
     /**
      * CONFIRM ORDER
      */
-    await this.confirmOrder(payment.order_id);
+    await this.ordersService.confirmOrder(payment.order_id);
 
     this.logger.log(`Payment success ${payment.id}`);
 
   }
 
-  /**
-   * CONFIRM ORDER
-   */
-  async confirmOrder(orderId: string) {
-
-    await this.dataSource.transaction(async manager => {
-
-      const orderDetails = await manager.find(OrderDetail, {
-        where: { order_id: orderId }
-      });
-
-      /**
-       * UPDATE STOCK
-       */
-      for (const item of orderDetails) {
-
-        const variant = await manager.findOne(ProductVariant, {
-          where: { id: item.variant_id }
-        });
-
-        if (!variant) continue;
-
-        variant.quantity -= item.quantity;
-
-        await manager.save(variant);
-
-      }
-
-      /**
-       * UPDATE ORDER STATUS
-       */
-      const order = await manager.findOne(Order, {
-        where: { id: orderId }
-      });
-
-      if (!order) return;
-
-      order.status = "Pending";
-
-      await manager.save(order);
-
-      /**
-       * CLEAR CART
-       */
-      const cart = await manager.findOne(Cart, {
-        where: { user_id: order.customer_id }
-      });
-
-      if (!cart) return;
-
-      await manager.delete(CartItem, {
-        cart_id: cart.id
-      });
-
-    });
-
-  }
 
 }
