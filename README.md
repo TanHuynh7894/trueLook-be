@@ -1,98 +1,225 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## True Look Backend (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend for the True Look system – a platform for managing users, products, and orders for eyewear (frames, prescription lenses, contact lenses, etc.) built with NestJS, PostgreSQL, and TypeORM.  
+The application exposes a REST API with Swagger documentation, JWT authentication, email sending, and static file serving for uploads.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### 1. Tech stack
 
-## Description
+- **Runtime**: Node.js, TypeScript
+- **Framework**: `NestJS`
+- **Database**: PostgreSQL (`TypeORM`)
+- **Authentication**: JWT, Passport (with Google OAuth2 support)
+- **API Docs**: `@nestjs/swagger` (Swagger UI)
+- **Mail**: `@nestjs-modules/mailer` (SMTP Gmail)
+- **Realtime / Socket**: `@nestjs/websockets`, `socket.io`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+### 2. Main structure
 
-```bash
-$ npm install
+- **`src/main.ts`**: Nest application bootstrap file, configures:
+  - Global `ValidationPipe`
+  - Swagger at `/api`
+  - CORS using `FRONTEND_URLS`
+  - Static files for `src/uploads` served at `/uploads`
+- **`src/app.module.ts`**:
+  - Initializes `ConfigModule` (environment variables)
+  - Configures `TypeOrmModule` (PostgreSQL, `synchronize: false`)
+  - Configures `MailerModule` with Gmail SMTP
+  - Imports business modules:
+    - **Users & roles**: `UsersModule`, `RolesModule`, `UserRolesModule`, `AuthModule`
+    - **Products & classification**: `BrandsModule`, `CategoriesModule`, `ProductsModule`, `ProductVariantsModule`, `ImagesModule`, `FeaturesModule`
+    - **Promotion & categories**: `PromotionsModule`, `ProductCategoriesModule`, `ProductPromotionsModule`
+    - **Cart & orders**: `CartsModule`, `CartItemsModule`, `OrdersModule`, `OrderDetailsModule`
+    - **Shipping & payments**: `ShippingProvidersModule`, `ShippingServicesModule`, `ShippingModule`, `TransitionsModule`, `PaymentsModule`
+    - **Frame / lens specs**: `FrameSpecsModule`, `RxLensSpecsModule`, `ContactLensSpecsModule`, `ContactLensAxisModule`
+    - **Others**: `SupersetModule`, `SupportModule`
+  - Registers `LoggerMiddleware` for all routes
+- **`src/modules/**`**: Contains business modules, entities, controllers, services, etc.
+- **`uploads/`**: Directory for uploaded files (served at `/uploads`).
+
+---
+
+### 3. Requirements
+
+- **Node.js**: recommended `>= 20`
+- **npm**: `>= 10`
+- **PostgreSQL**: an empty database with connection info matching environment variables
+
+---
+
+### 4. Environment variables
+
+Create a `.env` file in the project root (same level as `package.json`) with at least:
+
+```env
+PORT=3000
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+
+MAIL_USER=your_gmail_account
+MAIL_PASS=your_gmail_app_password
+
+FRONTEND_URLS=http://localhost:5173
 ```
 
-## Compile and run the project
+- `FRONTEND_URLS`: if there are multiple frontend URLs, separate them with commas, for example  
+  `http://localhost:5173,http://localhost:3000`.
+- `synchronize` in TypeORM is **disabled** (`false`), so the DB schema must be created via migrations or external scripts (it will not auto-generate tables at runtime).
+
+---
+
+### 5. Install & run
+
+#### 5.1. Install dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+#### 5.2. Run the application
 
 ```bash
-# unit tests
-$ npm run test
+# Development
+npm run start
 
-# e2e tests
-$ npm run test:e2e
+# Watch mode (auto reload)
+npm run start:dev
 
-# test coverage
-$ npm run test:cov
+# Production (using compiled build)
+npm run start:prod
 ```
 
-## Deployment
+By default the app listens on `http://localhost:${PORT}` (if `PORT` is not set, it defaults to `3000`).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 6. API documentation (Swagger)
+
+- After the server is running, open:
+  - **Swagger UI**: `http://localhost:${PORT}/api`
+- JWT token is configured in Swagger using the `Bearer` scheme (header: `Authorization: Bearer <token>`).
+
+---
+
+### 7. File uploads
+
+- Uploaded files are stored in `src/uploads`.
+- Backend exposes a static route:
+  - URL: `/uploads`
+  - Physical path: `src/uploads`
+- When storing file paths in the database, the frontend can access them via `http://<BACKEND_HOST>/uploads/<relative_path>`.
+
+---
+
+### 8. Helpful scripts
+
+Defined in `package.json`:
+
+- **`npm run build`**: Build the project using `nest build` (output in `dist`).
+- **`npm run format`**: Format code using Prettier.
+- **`npm run lint`**: Run ESLint and auto-fix where possible.
+- **`npm test`**: Run unit tests with Jest.
+- **`npm run test:e2e`**: Run e2e tests.
+- **`npm run test:cov`**: Generate coverage report.
+
+---
+
+### 9. Deployment
+
+For production deployment:
+
+- Make sure:
+  - DB and mail environment variables are correctly set.
+  - `FRONTEND_URLS` contains all real frontend domains.
+  - The project has been built: `npm run build`.
+- Start the production server:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+You can run it long-term using process managers such as `pm2`, Docker, or any cloud platform (Heroku, Render, AWS, etc.).
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+### 10. Docker deployment
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+This project includes a `dockerfile` for building a Node.js 20 multi-stage image.
 
-## Support
+#### 10.1. Build image
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# From project root
+docker build -t true-look-backend .
+```
 
-## Stay in touch
+#### 10.2. Run container
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+docker run -d \
+  --name true-look-be \
+  -p 3000:3000 \
+  --env-file .env \
+  true-look-backend
+```
 
-## License
+- The container listens on port `3000` (as defined in the `dockerfile`); you can change the host port if needed (e.g. `-p 8080:3000`).
+- The `.env` file is used to pass all configured environment variables (DB, mail, `FRONTEND_URLS`, etc.).
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+#### 10.3. PostgreSQL with Docker Compose (suggested)
+
+You can create a `docker-compose.yml` (example) to run both backend and PostgreSQL:
+
+```yaml
+services:
+  db:
+    image: postgres:16
+    container_name: true-look-db
+    restart: always
+    environment:
+      POSTGRES_USER: your_db_user
+      POSTGRES_PASSWORD: your_db_password
+      POSTGRES_DB: your_db_name
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: true-look-be
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+volumes:
+  db_data:
+```
+
+Remember to update DB-related environment variables in `.env` to point to the `db` service:
+
+```env
+DB_HOST=db
+DB_PORT=5432
+DB_USERNAME=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+```
+
+---
+
+### 11. Future improvements
+
+- Add detailed documentation for each module under `src/modules/**` (API, DTO, entities).
+- Add DB migration guide (TypeORM CLI or your own tooling).
+- Add ERD diagrams and business flow documentation (e.g. in a `docs/` directory).
+
