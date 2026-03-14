@@ -4,27 +4,21 @@ import {
   Body,
   UploadedFile,
   UseInterceptors,
-  BadRequestException,
   Req,
   UseGuards,
 } from '@nestjs/common';
 
+import { join } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
-
-import type { Request } from 'express';
-
+import type { Request, Response } from 'express';
 import { ImagesService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
-
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { ApiExcludeController, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { Delete, NotFoundException, Get, Param, Res } from '@nestjs/common';
-import type { Response } from 'express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { Delete, Get, Param, Res } from '@nestjs/common';
+import { imageUploadConfig } from './config/image-upload.config';
 
 @Controller('images')
 export class ImagesController {
@@ -50,35 +44,7 @@ export class ImagesController {
   })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-
-          console.log("USER:", req.user);
-
-          const roles = (req.user as any)?.roles || [];
-
-          console.log("ROLES:", roles);
-
-          let uploadPath = 'src/uploads';
-
-          if (roles.includes('Operation Staff') || roles.includes('Customer')) {
-            uploadPath = 'uploads/images';
-          }
-
-          console.log("UPLOAD PATH:", uploadPath);
-
-          cb(null, uploadPath);
-        }
-        ,
-        filename: (req, file, cb) => {
-          const uniqueName = Date.now() + extname(file.originalname);
-          cb(null, uniqueName);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', imageUploadConfig()))
   upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateImageDto,

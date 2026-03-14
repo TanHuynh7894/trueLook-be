@@ -27,11 +27,6 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = [
     "path": "D:\\Backend\\src\\uploads\\1773431065449.png"
   },
   {
-    "id": "1773431476986",
-    "variant_id": null,
-    "path": "src\\uploads\\1773431476732.png"
-  },
-  {
     "id": "1773431826850",
     "variant_id": null,
     "path": "src\\uploads\\1773431826062.png"
@@ -40,11 +35,6 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = [
     "id": "1773431967054",
     "variant_id": null,
     "path": "src\\uploads\\1773431966786.png"
-  },
-  {
-    "id": "1773432080613",
-    "variant_id": null,
-    "path": "uploads\\images\\1773432080436.png"
   },
   {
     "id": "1773432343779",
@@ -75,6 +65,71 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = [
     "id": "1773448211340",
     "variant_id": null,
     "path": "src\\uploads\\1773448210608.png"
+  },
+  {
+    "id": "1773448284141",
+    "variant_id": null,
+    "path": "src/uploads/1773448284131.jpg"
+  },
+  {
+    "id": "1773448334962",
+    "variant_id": null,
+    "path": "src/uploads/1773448334953.png"
+  },
+  {
+    "id": "1773475605847",
+    "variant_id": null,
+    "path": "src/uploads/1773475605821.png"
+  },
+  {
+    "id": "1773476255235",
+    "variant_id": null,
+    "path": "uploads/images/1773476255215.png"
+  },
+  {
+    "id": "1773478923755",
+    "variant_id": "1773344066877",
+    "path": "src/uploads/1773478922371.mp4"
+  },
+  {
+    "id": "1773479347640",
+    "variant_id": null,
+    "path": "src/uploads/1773479347638.png"
+  },
+  {
+    "id": "1773479358346",
+    "variant_id": null,
+    "path": "src/uploads/1773479358337.png"
+  },
+  {
+    "id": "1773480106871",
+    "variant_id": null,
+    "path": "src/uploads/1773480106861.jpg"
+  },
+  {
+    "id": "1773483760894",
+    "variant_id": null,
+    "path": "src/uploads/1773483760447.png"
+  },
+  {
+    "id": "1773483774911",
+    "variant_id": null,
+    "path": "src/uploads/1773483774429"
+  },
+  {
+    "id": "1773484877581",
+    "variant_id": null,
+    "path": "src/uploads/1773484877183.png"
+  },
+  {
+    "id": "1773485445144",
+    "variant_id": null,
+    "path": "uploads/images/1773485444694.png"
+  },
+  {
+    "id": "1773486268818",
+    "variant_id": null,
+    "path": "uploads/images/1773486268338.png"
   },
   {
     "id": "2",

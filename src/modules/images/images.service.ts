@@ -12,25 +12,35 @@ import { ProductVariant } from '../product_variants/entities/product_variant.ent
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import * as fs from 'fs';
-import { extname } from 'path';
 import { ConfigService } from '@nestjs/config';
-
 
 @Injectable()
 export class ImagesService {
   constructor(
     @InjectRepository(Image)
     private imagesRepository: Repository<Image>,
+
     private configService: ConfigService,
+
     @InjectRepository(ProductVariant)
     private productVariantsRepository: Repository<ProductVariant>,
   ) { }
 
-  async create(createImageDto: CreateImageDto) {
+  async getUploadPathByRoles(roles: string[]): Promise<string> {
+    let uploadPath = 'src/uploads';
 
+    if (roles.includes('Operation Staff') || roles.includes('Customer')) {
+      uploadPath = 'uploads/images';
+    }
+
+    return uploadPath;
+  }
+
+  async create(createImageDto: CreateImageDto) {
     if (!createImageDto.variant_id || createImageDto.variant_id === '') {
       delete createImageDto.variant_id;
     }
+
     if (createImageDto.variant_id) {
       const variant = await this.productVariantsRepository.findOneBy({
         id: createImageDto.variant_id,
@@ -58,9 +68,11 @@ export class ImagesService {
 
   async findOne(id: string) {
     const image = await this.imagesRepository.findOneBy({ id });
+
     if (!image) {
       throw new NotFoundException(`Image with id ${id} not found`);
     }
+
     return image;
   }
 
@@ -71,6 +83,7 @@ export class ImagesService {
       const variant = await this.productVariantsRepository.findOneBy({
         id: updateImageDto.variant_id,
       });
+
       if (!variant) {
         throw new NotFoundException(
           `Product variant with id ${updateImageDto.variant_id} not found`,
@@ -79,25 +92,33 @@ export class ImagesService {
     }
 
     await this.imagesRepository.update(id, updateImageDto);
+
     const updated = await this.findOne(id);
+
     await this.syncImagesSnapshot();
+
     return updated;
   }
 
   async remove(id: string) {
     const result = await this.imagesRepository.delete(id);
+
     if (result.affected === 0) {
       throw new NotFoundException(`Image with id ${id} not found for delete`);
     }
+
     await this.syncImagesSnapshot();
+
     return {
       message: `Deleted image with id: ${id}`,
       statusCode: 200,
     };
   }
 
+  // FIX 1: đảm bảo folder uploads tồn tại trước khi write file
   private async syncImagesSnapshot() {
     const images = await this.imagesRepository.find({ order: { id: 'ASC' } });
+
     const snapshot = images.map((image) => ({
       id: image.id,
       variant_id: image.variant_id,
@@ -111,16 +132,21 @@ export type ImageDataSnapshot = {
   path: string;
 };
 
-export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(snapshot, null, 2)};
+export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(
+      snapshot,
+      null,
+      2,
+    )};
 `;
 
-    const snapshotPath = join(
-      process.cwd(),
-      'src',
-      'modules',
-      'images',
-      'images.data.ts',
-    );
+    const folder = join(process.cwd(), 'uploads');
+
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+    }
+
+    const snapshotPath = join(folder, 'images.data.ts');
+
     try {
       await writeFile(snapshotPath, content, 'utf8');
     } catch (error) {
@@ -130,33 +156,26 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(snapsho
     }
   }
 
-  async uploadImage(file, dto, roles) {
-    
-    let folder = '';
+  // FIX 2: không tự tạo file path mới, dùng file.path của multer
+  async uploadImage(file: Express.Multer.File, dto: CreateImageDto, roles: string[]) {
 
-    if (roles.includes('Operation Staff') || roles.includes('Customer'))  {
-      folder = join(process.cwd(), 'uploads/images');
-    } else {
-      folder = join(process.cwd(), 'src/uploads');
+    const uploadPath = await this.getUploadPathByRoles(roles);
+
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
 
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
-    }
+    const newPath = `${uploadPath}/${file.filename}`;
 
-    const filename = Date.now() + extname(file.originalname);
-    const path = join(folder, filename);
+    fs.renameSync(file.path, newPath);
 
-
-    dto.path = file.path;
+    dto.path = newPath;
 
     return this.create(dto);
   }
-
   async getImagePathById(id: string): Promise<string | null> {
-
     const image = await this.imagesRepository.findOne({
-      where: { id }
+      where: { id },
     });
 
     if (!image) {
@@ -165,16 +184,25 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(snapsho
 
     const filepath = image.path;
 
-    if (!fs.existsSync(filepath)) {
-      return null;
+    const root = process.cwd();
+
+    const path1 = join(root, filepath);          // uploads/images/...
+    const path2 = join(root, 'src', filepath);   // src/uploads/...
+
+    if (fs.existsSync(path1)) {
+      return path1;
     }
 
-    return filepath;
-  }
-  async deleteImage(id: string) {
+    if (fs.existsSync(path2)) {
+      return path2;
+    }
 
+    return null;
+  }
+
+  async deleteImage(id: string) {
     const image = await this.imagesRepository.findOne({
-      where: { id }
+      where: { id },
     });
 
     if (!image) {
@@ -190,20 +218,19 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(snapsho
     await this.imagesRepository.delete(id);
 
     return {
-      message: 'Image deleted successfully'
+      message: 'Image deleted successfully',
     };
   }
 
   async getAllImages() {
-
     const baseUrl = this.configService.get<string>('BASE_URL');
 
     const images = await this.imagesRepository.find();
 
-    return images.map(img => ({
+    return images.map((img) => ({
       id: img.id,
       variant_id: img.variant_id,
-      image_url: `${baseUrl}/images/${img.id}`
+      image_url: `${baseUrl}/images/${img.id}`,
     }));
   }
 }

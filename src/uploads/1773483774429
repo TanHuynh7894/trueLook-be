@@ -1,0 +1,32 @@
+DB_HOST=192.168.1.178
+DB_PORT=5432
+DB_USERNAME=vinhphuoc
+DB_PASSWORD=12345678
+DB_NAME=trueLook
+JWT_SECRET=trueLook_test
+JWT_ACCESS_SECRET=trueLook_test_JWT_ACCESS_SECRET
+JWT_REFRESH_SECRET=trueLook_test_JWT_REFRESH_SECRET
+MAIL_USER=noledaden036@gmail.com
+MAIL_PASS=ppmh szkb fmih lfkf
+
+# Google OAuth
+GOOGLE_CLIENT_ID=325873263314-u9thj5dvjrm5ejf74v9vc1q8krp67gkq.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+
+# FE
+FRONTEND_URLS=http://localhost:4200,http://localhost:5173,http://localhost:3000,https://true-look.tanhuynh.xyz
+
+# PayOS
+PAYOS_CLIENT_ID=bf18ea0e-4c86-48de-9be4-6d22e3208f84
+PAYOS_API_KEY=8ccf42eb-2815-4de9-be9e-465469da9df3
+PAYOS_CHECKSUM_KEY=5aec88d4972a93ee8c5e901297fa99db9d3cb8e09f3f6097c555bebcd48c8136
+PAYOS_RETURN_URL=https://api-truelook.tanhuynh.xyz/payments/success
+PAYOS_CANCEL_URL=https://api-truelook.tanhuynh.xyz/payments/cancel
+
+# Keycloak
+KEYCLOAK_TOKEN_URL=https://keycloak.tanhuynh.xyz/realms/analytics/protocol/openid-connect/token
+KEYCLOAK_ADMIN_USERS_URL=https://keycloak.tanhuynh.xyz/admin/realms/analytics/users
+KEYCLOAK_CLIENT_ID=truelook-api
+KEYCLOAK_CLIENT_SECRET=Pr3rVgdfLXv6ziNGdD7TLHsP76DsNdqG
+SUPERSET_URL=https://superset.tanhuynh.xyz
