@@ -23,9 +23,7 @@ export class PaymentsController {
     private readonly paymentService: PaymentsService
   ) {}
 
-  /**
-   * CREATE PAYMENT
-   */
+  
   @Post()
   async create(@Body() body: CreatePaymentDto) {
 
@@ -41,9 +39,7 @@ export class PaymentsController {
 
   }
 
-  /**
-   * PAYOS WEBHOOK
-   */
+  
   @Post('webhook')
   @HttpCode(200)
   async webhook(@Body() body: any) {
@@ -72,9 +68,7 @@ export class PaymentsController {
 
   }
 
-  /**
-   * PAYMENT SUCCESS REDIRECT
-   */
+  
   @Get('success')
   async paymentSuccess(
     @Query() query: any,
@@ -91,9 +85,7 @@ export class PaymentsController {
 
   }
 
-  /**
-   * PAYMENT CANCEL REDIRECT
-   */
+  
   @Get('cancel')
   async paymentCancel(
     @Query() query: any,

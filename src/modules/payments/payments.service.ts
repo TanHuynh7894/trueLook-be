@@ -59,9 +59,7 @@ export class PaymentsService {
 
   }
 
-  /**
-   * VALIDATE PROMOTION
-   */
+ 
   private async validatePromotion(order: Order, promotion: Promotion) {
 
     const now = new Date();
@@ -84,9 +82,7 @@ export class PaymentsService {
     return true;
   }
 
-  /**
-   * CALCULATE DISCOUNT
-   */
+  
   private calculateDiscount(orderTotal: number, promotion: Promotion): number {
 
     let discount = Number(promotion.discount);
@@ -98,9 +94,7 @@ export class PaymentsService {
     return discount;
   }
 
-  /**
-   * CREATE PAYMENT
-   */
+  
   async createPayment(orderId: string, promotionId?: string) {
 
     const order = await this.orderRepo.findOne({
@@ -111,9 +105,7 @@ export class PaymentsService {
       throw new NotFoundException("Order not found");
     }
 
-    /**
-     * PREVENT MULTIPLE PAYMENT
-     */
+    
     const existingPayment = await this.paymentRepo.findOne({
       where: {
         order_id: orderId,
@@ -133,9 +125,7 @@ export class PaymentsService {
 
     let discount = 0;
 
-    /**
-     * APPLY PROMOTION
-     */
+    
     if (promotionId) {
 
       const promotion = await this.promotionRepo.findOne({
@@ -152,24 +142,18 @@ export class PaymentsService {
 
     }
 
-    /**
-     * FINAL AMOUNT
-     */
+    
     const finalAmount = totalAmount - discount;
 
     if (finalAmount < 0) {
       throw new Error("Invalid final amount");
     }
 
-    /**
-     * UPDATE ORDER TOTAL
-     */
+    
     order.total = finalAmount;
     await this.orderRepo.save(order);
 
-    /**
-     * CASE: FREE ORDER
-     */
+    
     if (finalAmount === 0) {
 
       await this.ordersService.confirmOrder(orderId);
@@ -183,14 +167,10 @@ export class PaymentsService {
 
     }
 
-    /**
-     * GENERATE ORDER CODE
-     */
+    
     const orderCode = Date.now() + Math.floor(Math.random() * 1000);
 
-    /**
-     * SAVE PAYMENT
-     */
+    
     const payment = this.paymentRepo.create({
       id: orderCode.toString(),
       order_id: orderId,
@@ -201,9 +181,7 @@ export class PaymentsService {
 
     await this.paymentRepo.save(payment);
 
-    /**
-     * CREATE PAYOS PAYMENT
-     */
+    
     const body = {
       orderCode: orderCode,
       amount: finalAmount,
@@ -233,9 +211,7 @@ export class PaymentsService {
 
   }
 
-  /**
-   * PAYOS WEBHOOK
-   */
+  
   async handleWebhook(body: any) {
 
     const data = await this.payOS.webhooks.verify(body);
@@ -256,9 +232,7 @@ export class PaymentsService {
       return;
     }
 
-    /**
-     * PREVENT DOUBLE WEBHOOK
-     */
+    
     if (payment.status === "Completed") {
       this.logger.log("Payment already processed");
       return;
@@ -269,9 +243,7 @@ export class PaymentsService {
 
     await this.paymentRepo.save(payment);
 
-    /**
-     * SAVE TRANSACTION
-     */
+   
     const transition = this.transitionRepo.create({
       id: Date.now().toString(),
       payment_id: payment.id,
@@ -282,9 +254,7 @@ export class PaymentsService {
 
     await this.transitionRepo.save(transition);
 
-    /**
-     * CONFIRM ORDER
-     */
+    
     await this.ordersService.confirmOrder(payment.order_id);
 
     this.logger.log(`Payment success ${payment.id}`);

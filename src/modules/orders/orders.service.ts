@@ -42,9 +42,7 @@ export class OrdersService {
     private dataSource: DataSource,
   ) { }
 
-  /**
-   * CREATE ORDER (TEMP)
-   */
+  
   async create(createOrderDto: CreateOrderDto) {
 
     const customer = await this.usersRepository.findOneBy({
@@ -121,9 +119,7 @@ export class OrdersService {
     });
   }
 
-  /**
-   * CONFIRM ORDER (PAYMENT SUCCESS)
-   */
+  
   async confirmOrder(orderId: string) {
 
     return await this.dataSource.transaction(async manager => {
@@ -142,9 +138,7 @@ export class OrdersService {
 
       this.logger.log(`Order found: status=${order.status}, total=${order.total}`);
 
-      /**
-       * GET PAYMENT
-       */
+      
       const payment = await manager.findOne(Payment, {
         where: {
           order_id: orderId,
@@ -159,9 +153,7 @@ export class OrdersService {
 
       this.logger.log(`Payment found: amount=${payment.amount}`);
 
-      /**
-       * PREVENT DOUBLE WEBHOOK
-       */
+     
       if (order.total === payment.amount && order.status === "Pending") {
 
         this.logger.warn(`Order ${orderId} already processed`);
@@ -172,9 +164,7 @@ export class OrdersService {
         };
       }
 
-      /**
-       * UPDATE ORDER
-       */
+      
       this.logger.log(`Updating order status to Pending`);
 
       order.total = payment.amount;
@@ -182,9 +172,7 @@ export class OrdersService {
 
       await manager.save(order);
 
-      /**
-       * GET ORDER DETAILS
-       */
+      
       const orderDetails = await manager.find(OrderDetail, {
         where: { order_id: orderId },
       });
@@ -196,9 +184,7 @@ export class OrdersService {
         throw new BadRequestException('Order has no items');
       }
 
-      /**
-       * UPDATE STOCK
-       */
+      
       for (const item of orderDetails) {
 
         this.logger.log(`Processing variant ${item.variant_id}`);
@@ -235,9 +221,7 @@ export class OrdersService {
         await manager.save(variant);
       }
 
-      /**
-       * CLEAR CART
-       */
+      
       const cart = await manager.findOne(Cart, {
         where: { user_id: order.customer_id },
       });
@@ -259,35 +243,31 @@ export class OrdersService {
 
     });
   }
-  /**
-   * FIND ALL
-   */
+  
   async findAll() {
     const data = await this.ordersRepository
       .createQueryBuilder('o')
 
-      // orders → users
+      
       .leftJoinAndSelect('o.customer', 'customer')
 
-      // users → addresses
+      
       .leftJoinAndSelect('customer.addresses', 'addresses')
 
-      // orders → order_details
+      
       .leftJoinAndSelect('o.orderDetails', 'orderDetails')
 
-      // order_details → product_variants
+      
       .leftJoinAndSelect('orderDetails.variant', 'variant')
 
-      // orders → payments
+      
       .leftJoinAndSelect('o.payments', 'payments')
 
       .orderBy('o.create_at', 'DESC')
       .getMany();
     return data;
   }
-  /**
-   * FIND ONE
-   */
+  
   async findOne(id: string) {
     const order = await this.ordersRepository.findOne({
       where: { id },
@@ -300,9 +280,7 @@ export class OrdersService {
     return order;
   }
 
-  /**
-   * UPDATE
-   */
+  
   async update(id: string, updateOrderDto: UpdateOrderDto) {
 
     await this.findOne(id);
@@ -351,9 +329,7 @@ export class OrdersService {
     };
   }
 
-  /**
-   * DELETE
-   */
+  
   async remove(id: string) {
 
     const order = await this.ordersRepository.findOne({
