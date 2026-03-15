@@ -43,7 +43,7 @@ export class ImagesController {
     },
   })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff')
+  @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff' ,'Customer')
   @UseInterceptors(FileInterceptor('file', imageUploadConfig()))
   upload(
     @UploadedFile() file: Express.Multer.File,
@@ -59,7 +59,7 @@ export class ImagesController {
   @ApiOperation({ summary: 'Get an image by id' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
+  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff', 'Customer')
   async getImage(
     @Param('id') id: string,
     @Res() res: Response,

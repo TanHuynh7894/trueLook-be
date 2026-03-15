@@ -132,6 +132,41 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = [
     "path": "uploads/images/1773486268338.png"
   },
   {
+    "id": "1773512032640",
+    "variant_id": null,
+    "path": "src/uploads/1773512032298.png"
+  },
+  {
+    "id": "1773520556559",
+    "variant_id": "1",
+    "path": "src/uploads/1773520556548.png"
+  },
+  {
+    "id": "1773521792256",
+    "variant_id": "2",
+    "path": "src/uploads/1773521792250.png"
+  },
+  {
+    "id": "1773567293841",
+    "variant_id": "1773344066877",
+    "path": "src/uploads/1773567293608.png"
+  },
+  {
+    "id": "1773583843441",
+    "variant_id": "2",
+    "path": "src/uploads/1773583842859.png"
+  },
+  {
+    "id": "1773583852491",
+    "variant_id": "2",
+    "path": "src/uploads/1773583852246.png"
+  },
+  {
+    "id": "1773583946081",
+    "variant_id": null,
+    "path": "uploads/images/1773583945671.png"
+  },
+  {
     "id": "2",
     "variant_id": "2",
     "path": "https://cdn.kinhmatlily.com/farello01/2025/8/kinh-mat-ha-noi%20(7)-1754538484000.jpeg"
