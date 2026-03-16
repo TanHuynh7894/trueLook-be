@@ -178,23 +178,16 @@ export const IMAGE_DATA_SNAPSHOT: ImageDataSnapshot[] = ${JSON.stringify(
       where: { id },
     });
 
+    console.log("result:", image);
+
     if (!image) {
       return null;
     }
 
     const filepath = image.path;
 
-    const root = process.cwd();
-
-    const path1 = join(root, filepath);          // uploads/images/...
-    const path2 = join(root, 'src', filepath);   // src/uploads/...
-
-    if (fs.existsSync(path1)) {
-      return path1;
-    }
-
-    if (fs.existsSync(path2)) {
-      return path2;
+    if (fs.existsSync(filepath)) {
+      return filepath;
     }
 
     return null;

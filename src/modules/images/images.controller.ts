@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { join } from 'path';
+import path, { join } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { ImagesService } from './images.service';
@@ -43,7 +43,7 @@ export class ImagesController {
     },
   })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff' ,'Customer')
+  @Roles('System Admin', 'Manager', 'Sales Staff', 'Operation Staff', 'Customer')
   @UseInterceptors(FileInterceptor('file', imageUploadConfig()))
   upload(
     @UploadedFile() file: Express.Multer.File,
@@ -57,9 +57,6 @@ export class ImagesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get an image by id' })
-  @ApiBearerAuth('access-token')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff', 'Customer')
   async getImage(
     @Param('id') id: string,
     @Res() res: Response,
@@ -87,9 +84,6 @@ export class ImagesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all images' })
-  @ApiBearerAuth('access-token')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('System Admin', 'Manager', 'Operation Staff', 'Sales Staff')
   getAllImages() {
     return this.imagesService.getAllImages();
   }
