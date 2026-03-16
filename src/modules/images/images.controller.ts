@@ -57,20 +57,12 @@ export class ImagesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get an image by id' })
-  async getImage(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
+  async getImage(@Param('id') id: string, @Res() res: Response) {
+    const image = await this.imagesService.findOne(id);
 
-    const filepath = await this.imagesService.getImagePathById(id);
+    const filePath = path.resolve(image.path);
 
-    if (!filepath) {
-      return res.status(404).json({
-        message: 'Image not found'
-      });
-    }
-
-    return res.sendFile(filepath);
+    return res.sendFile(filePath);
   }
 
   @Delete(':id')
