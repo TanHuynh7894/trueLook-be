@@ -19,6 +19,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 import axios from 'axios';
+import { KeycloakService } from './keycloak.service';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -27,6 +28,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly userRolesService: UserRolesService,
+    private readonly keycloakService: KeycloakService,
   ) {}
 
   @Post('staff')
@@ -41,105 +43,18 @@ export class UsersController {
       password,
     } as any);
 
+    // 2. Gán Role dưới Local Database
     await this.userRolesService.assignRoleByName(user.id, roleName);
 
-    try {
-      // ===== 1. LẤY ADMIN TOKEN =====
-      const tokenParams = new URLSearchParams();
-      tokenParams.append('grant_type', 'client_credentials');
-      tokenParams.append('client_id', process.env.KEYCLOAK_CLIENT_ID!);
-      tokenParams.append('client_secret', process.env.KEYCLOAK_CLIENT_SECRET!);
-
-      const tokenResponse = await axios.post(
-        process.env.KEYCLOAK_TOKEN_URL!,
-        tokenParams,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        },
-      );
-
-      const adminToken = tokenResponse.data.access_token;
-
-      console.log('[Keycloak] Admin token OK');
-
-      // ===== 2. TẠO USER TRONG KEYCLOAK =====
-      const keycloakUserData = {
-        username: userData.username,
-        email: userData.email,
-        firstName: userData.fullName,
-        enabled: true,
-        credentials: [
-          {
-            type: 'password',
-            value: password,
-            temporary: false,
-          },
-        ],
-      };
-
-      const createUserResp = await axios.post(
-        process.env.KEYCLOAK_ADMIN_USERS_URL!,
-        keycloakUserData,
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      console.log('[Keycloak] User created');
-
-      // ===== 3. LẤY USER ID TỪ HEADER LOCATION =====
-      const location = createUserResp.headers.location;
-      const keycloakUserId = location.split('/').pop();
-
-      // ===== 4. LẤY ROLE =====
-      const realmAdminUrl =
-        process.env.KEYCLOAK_ADMIN_USERS_URL!.replace('/users', '');
-
-      const roleResp = await axios.get(
-        `${realmAdminUrl}/roles/${encodeURIComponent(roleName)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-        },
-      );
-
-      const role = roleResp.data;
-
-      // ===== 5. GÁN ROLE CHO USER =====
-      await axios.post(
-        `${process.env.KEYCLOAK_ADMIN_USERS_URL}/${keycloakUserId}/role-mappings/realm`,
-        [
-          {
-            id: role.id,
-            name: role.name,
-          },
-        ],
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      console.log(`[Keycloak] Role ${roleName} assigned`);
-    } catch (error: any) {
-      console.error('===== KEYCLOAK ERROR =====');
-
-      if (error.response) {
-        console.error('STATUS:', error.response.status);
-        console.error('DATA:', error.response.data);
-      } else {
-        console.error(error.message);
-      }
-
-      console.error('==========================');
+    // 3. CHỐT CHẶN: Chỉ ném sang Keycloak nếu là System Admin hoặc Manager
+    const allowedKeycloakRoles = ['System Admin', 'Manager'];
+    
+    if (allowedKeycloakRoles.includes(roleName)) {
+      console.log(`=> Chức vụ ${roleName} VIP, đang đồng bộ sang Keycloak...`);
+      // Gọi service Keycloak vừa viết ở bước 1
+      await this.keycloakService.createUserAndAssignRole(userData, password, roleName);
+    } else {
+      console.log(`=> Chức vụ ${roleName} không cần đồng bộ Keycloak, bỏ qua.`);
     }
 
     return {

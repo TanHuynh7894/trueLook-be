@@ -32,11 +32,11 @@ export class CreateStaffDto {
 
   @ApiProperty({ 
     example: 'Manager', 
-    enum: ['Manager', 'System Admin'],
+    enum: ['Manager', 'System Admin', 'Sales Staff', 'Operation Staff'],
     description: 'Quyền hạn của nhân viên' 
   })
   @IsString()
   @IsNotEmpty({ message: 'Vui lòng chọn quyền cho nhân viên' })
-  @IsIn(['Manager', 'System Admin'], { message: 'Quyền không hợp lệ (Chỉ nhận Manager hoặc System Admin)' })
+  @IsIn(['Manager', 'System Admin', 'Sales Staff', 'Operation Staff'], { message: 'Quyền không hợp lệ' })
   roleName: string;
 }
