@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { 
+  Injectable, 
+  Logger, 
+  BadRequestException, 
+  InternalServerErrorException 
+} from '@nestjs/common';
 import axios from 'axios';
 
 @Injectable()
@@ -19,7 +24,7 @@ export class KeycloakService {
       );
 
       const adminToken = tokenResponse.data.access_token;
-      this.logger.log('Admin token OK');
+      this.logger.log(' Admin token OK');
 
       const keycloakUserData = {
         username: userData.username,
@@ -69,13 +74,27 @@ export class KeycloakService {
       
     } catch (error: any) {
       this.logger.error('===== KEYCLOAK ERROR =====');
+      
+      let errorMessage = 'Lỗi không xác định từ hệ thống Keycloak';
+      let statusCode = 500;
+
       if (error.response) {
-        this.logger.error(`STATUS: ${error.response.status}`);
+        statusCode = error.response.status;
+        this.logger.error(`STATUS: ${statusCode}`);
         this.logger.error(`DATA: ${JSON.stringify(error.response.data)}`);
+        
+        errorMessage = error.response.data?.errorMessage || JSON.stringify(error.response.data);
       } else {
         this.logger.error(error.message);
+        errorMessage = error.message;
       }
       this.logger.error('==========================');
+
+      if (statusCode === 409) {
+        throw new BadRequestException(`Không thể tạo tài khoản trên Keycloak: ${errorMessage}`);
+      }
+      
+      throw new InternalServerErrorException(`Lỗi đồng bộ Keycloak: ${errorMessage}`);
     }
   }
 }
