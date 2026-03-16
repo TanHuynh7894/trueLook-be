@@ -8,6 +8,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  HttpException,
+  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,6 +28,7 @@ import { KeycloakService } from './keycloak.service';
 @ApiBearerAuth('access-token')
 @Controller('users')
 export class UsersController {
+      private readonly logger = new Logger(UsersController.name);
   constructor(
     private readonly usersService: UsersService,
     private readonly userRolesService: UserRolesService,
@@ -37,34 +41,54 @@ export class UsersController {
   @ApiOperation({ summary: 'Tạo tài khoản nhân viên (Chỉ Admin/Manager)' })
   async createStaff(@Body() createStaffDto: CreateStaffDto) {
     const { roleName, password, ...userData } = createStaffDto;
-
-    const user = await this.usersService.create({
-      ...userData,
-      password,
-    } as any);
-
-    // 2. Gán Role dưới Local Database
-    await this.userRolesService.assignRoleByName(user.id, roleName);
-
-    // 3. CHỐT CHẶN: Chỉ ném sang Keycloak nếu là System Admin hoặc Manager
     const allowedKeycloakRoles = ['System Admin', 'Manager'];
-    
-    if (allowedKeycloakRoles.includes(roleName)) {
-      console.log(`=> Chức vụ ${roleName} VIP, đang đồng bộ sang Keycloak...`);
-      // Gọi service Keycloak vừa viết ở bước 1
-      await this.keycloakService.createUserAndAssignRole(userData, password, roleName);
-    } else {
-      console.log(`=> Chức vụ ${roleName} không cần đồng bộ Keycloak, bỏ qua.`);
-    }
 
-    return {
-      message: 'Đã tạo tài khoản nhân viên thành công!',
-      user: {
-        id: user.id,
-        username: user.username,
-        role: roleName,
-      },
-    };
+    try {
+      if (allowedKeycloakRoles.includes(roleName)) {
+        this.logger.log(`=> Chức vụ ${roleName} VIP, đang đồng bộ sang Keycloak...`);
+        await this.keycloakService.createUserAndAssignRole(userData, password, roleName);
+        this.logger.log(`=> Keycloak OK! Tiếp tục tạo Local DB.`);
+      } else {
+        this.logger.log(`=> Chức vụ ${roleName} không cần Keycloak, bỏ qua bước 1.`);
+      }
+
+      const user = await this.usersService.create({
+        ...userData,
+        password,
+      } as any);
+
+      if (!user || !user.id) {
+        throw new Error('Hệ thống Local DB tạo user thành công nhưng không trả về ID!');
+      }
+
+      await this.userRolesService.assignRoleByName(user.id, roleName);
+
+      return {
+        message: 'Đã tạo tài khoản nhân viên thành công!',
+        user: {
+          id: user.id,
+          username: user.username,
+          role: roleName,
+        },
+      };
+
+    } catch (error: any) {
+
+      this.logger.error(`LỖI TẠO STAFF: ${error.message}`, error.stack);
+
+      if (error instanceof HttpException) {
+        throw error; 
+      }
+
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Lỗi hệ thống khi tạo nhân viên: ' + error.message,
+          error: 'Internal Server Error'
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('me')

@@ -24,9 +24,9 @@ RUN npm install --omit=dev --legacy-peer-deps
 
 COPY --from=builder /app/dist ./dist
 
-# Tạo folder uploads trong container
-RUN mkdir -p /app/uploads
+# Tạo 2 folder upload
 RUN mkdir -p /app/src/uploads
+RUN mkdir -p /app/uploads/images
 
 EXPOSE 3000
 
