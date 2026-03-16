@@ -13,7 +13,7 @@ export class Image {
   @PrimaryColumn({ type: 'varchar', length: 15 })
   id: string;
 
-  @Column({ name: 'variant_id', type: 'varchar', length: 15 })
+  @Column({ name: 'variant_id', type: 'varchar', length: 15, nullable: true })
   variant_id: string;
 
   @Column({ type: 'varchar' })
