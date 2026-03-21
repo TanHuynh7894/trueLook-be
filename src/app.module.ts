@@ -34,6 +34,7 @@ import { FeaturesModule } from './modules/feartures/feartures.module';
 import { ContactLensAxisModule } from './modules/contact_lens_axis/contact_lens_axis.module';
 import { SupersetModule } from './modules/superset/superset.module';
 import { SupportModule } from './modules/support/support.module';
+import { AiSupersetModule } from './modules/ai-superset/ai-superset.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { SupportModule } from './modules/support/support.module';
     FeaturesModule,
     SupersetModule,
     SupportModule,
+    AiSupersetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
