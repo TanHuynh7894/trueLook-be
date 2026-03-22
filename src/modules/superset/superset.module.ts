@@ -5,5 +5,6 @@ import { SupersetController } from './superset.controller';
 @Module({
   controllers: [SupersetController],
   providers: [SupersetService],
+  exports: [SupersetService]
 })
 export class SupersetModule {}
