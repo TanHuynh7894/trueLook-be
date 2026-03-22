@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Post, Logger, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards, Logger } from '@nestjs/common';
 import { SupersetService } from './superset.service';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -21,6 +21,22 @@ export class SupersetController {
     return this.supersetService.getSsoLink();
   }
 
+  @Get('dashboards')
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'Lấy danh sách toàn bộ Dashboards' })
+  async getDashboards() {
+    this.logger.log('Đang truy vấn danh sách Dashboards từ Superset');
+    return await this.supersetService.getDashboards();
+  }
+
+  @Get('charts')
+  @Roles('System Admin', 'Manager')
+  @ApiOperation({ summary: 'Lấy danh sách toàn bộ Charts' })
+  async getCharts() {
+    this.logger.log('Đang truy vấn danh sách Charts từ Superset');
+    return await this.supersetService.getCharts();
+  }
+
   @Get('chart/:id/data')
   @Roles('System Admin', 'Manager')
   @ApiOperation({ summary: 'Lấy dữ liệu thực tế của một Chart theo ID' })
@@ -34,8 +50,10 @@ export class SupersetController {
   @Get('chart/:id/metadata')
   @Roles('System Admin')
   @ApiOperation({ summary: 'Lấy Metadata (cấu hình) của Chart' })
+  @ApiParam({ name: 'id', description: 'ID của Chart trong Superset', example: 1 })
   async getChartMetadata(@Param('id', ParseIntPipe) id: number) {
-    // Bạn có thể bổ sung hàm lấy metadata riêng trong service nếu muốn
+    // Tạm thời gọi chung hàm getChartData, nếu service có hàm getMetadata riêng thì thay đổi tại đây
+    this.logger.log(`Đang truy vấn metadata cho Chart ID: ${id}`);
     return await this.supersetService.getChartData(id); 
   }
 }
