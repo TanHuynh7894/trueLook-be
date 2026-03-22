@@ -54,6 +54,6 @@ export class SupersetController {
   async getChartMetadata(@Param('id', ParseIntPipe) id: number) {
     // Tạm thời gọi chung hàm getChartData, nếu service có hàm getMetadata riêng thì thay đổi tại đây
     this.logger.log(`Đang truy vấn metadata cho Chart ID: ${id}`);
-    return await this.supersetService.getChartData(id); 
+    return await this.supersetService.getChartMetadata(id); 
   }
 }

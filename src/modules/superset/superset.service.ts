@@ -157,6 +157,25 @@ export class SupersetService {
     }
   }
 
+  async getChartMetadata(chartId: number) {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await this.client.get(`/chart/${chartId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Trả về toàn bộ object 'result' chứa label_columns, params, viz_type...
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Lỗi lấy Metadata Chart ${chartId}:`, error.response?.data || error.message);
+      throw new HttpException(
+        `Không thể lấy thông tin cấu hình cho Chart ID ${chartId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
   /**
    * Lấy link login cho Frontend
    */
